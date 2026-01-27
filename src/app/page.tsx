@@ -122,7 +122,7 @@ function LocationDisplay({ location, locationCode, address }: { location: string
           href={getAppleMapsUrl(address)}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-mono bg-[var(--card-bg)] border border-[var(--border)] rounded hover:border-[var(--upcoming)] hover:text-[var(--upcoming)] transition-colors"
+          className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-mono bg-[var(--card-bg)] border border-[var(--border)] rounded hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
           title="Open in Apple Maps"
         >
           <AppleMapsIcon className="w-3.5 h-3.5" />
@@ -136,15 +136,15 @@ function LocationDisplay({ location, locationCode, address }: { location: string
 
 function NextGameCard({ game }: { game: Game }) {
   return (
-    <div className="relative mt-8 p-6 md:p-8 bg-gradient-to-br from-[var(--upcoming)]/20 via-[var(--upcoming)]/10 to-transparent border-2 border-[var(--upcoming)] rounded-lg overflow-hidden">
-      {/* Animated background pulse */}
-      <div className="absolute inset-0 bg-[var(--upcoming)]/5 animate-pulse" />
+    <div className="relative mt-8 p-6 md:p-8 bg-[#0f1f15] border-2 border-[var(--accent)] rounded-lg overflow-hidden">
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/10 to-transparent" />
 
       {/* Content */}
       <div className="relative">
         <div className="flex items-center gap-2 mb-4">
-          <span className="w-3 h-3 rounded-full bg-[var(--upcoming)] animate-pulse" />
-          <span className="font-mono text-sm text-[var(--upcoming)] uppercase tracking-widest font-bold">
+          <span className="w-3 h-3 rounded-full bg-[var(--accent)] animate-pulse" />
+          <span className="font-mono text-sm text-[var(--accent-light)] uppercase tracking-widest font-bold">
             Next Game
           </span>
         </div>
@@ -153,14 +153,14 @@ function NextGameCard({ game }: { game: Game }) {
           {/* Date & Time */}
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <CalendarIcon className="w-5 h-5 text-[var(--upcoming)]" />
+              <CalendarIcon className="w-5 h-5 text-[var(--accent)]" />
               <span className="font-display text-3xl md:text-4xl text-[var(--foreground)]">
                 {game.date}
               </span>
             </div>
             <div className="flex items-center gap-3">
-              <ClockIcon className="w-5 h-5 text-[var(--upcoming)]" />
-              <span className="font-mono text-2xl text-[var(--accent)]">
+              <ClockIcon className="w-5 h-5 text-[var(--accent)]" />
+              <span className="font-mono text-2xl text-[var(--foreground)]">
                 {game.time}
               </span>
             </div>
@@ -169,7 +169,7 @@ function NextGameCard({ game }: { game: Game }) {
           {/* Opponent */}
           <div className="flex flex-col justify-center">
             <div className="text-xs uppercase tracking-widest text-[var(--muted)] mb-1">VS</div>
-            <div className="font-display text-2xl md:text-3xl text-[var(--upcoming)] glow-upcoming">
+            <div className="font-display text-2xl md:text-3xl text-[var(--foreground)]">
               {game.opponent}
             </div>
           </div>
@@ -178,7 +178,7 @@ function NextGameCard({ game }: { game: Game }) {
           <div className="space-y-2">
             <div className="text-xs uppercase tracking-widest text-[var(--muted)]">Location</div>
             <div className="flex items-start gap-2">
-              <MapPinIcon className="w-5 h-5 text-[var(--upcoming)] shrink-0 mt-0.5" />
+              <MapPinIcon className="w-5 h-5 text-[var(--accent)] shrink-0 mt-0.5" />
               <div>
                 <div className="font-body text-base text-[var(--foreground)]">{game.location}</div>
                 <div className="font-mono text-xs text-[var(--muted)] mt-1">{game.locationAddress}</div>
@@ -190,7 +190,7 @@ function NextGameCard({ game }: { game: Game }) {
                   href={getGoogleMapsUrl(game.locationAddress)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono bg-[var(--upcoming)]/20 border border-[var(--upcoming)] rounded hover:bg-[var(--upcoming)]/30 text-[var(--upcoming)] transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono bg-[var(--accent)]/20 border border-[var(--accent)] rounded hover:bg-[var(--accent)]/30 text-[var(--foreground)] transition-colors"
                 >
                   <GoogleMapsIcon className="w-4 h-4" />
                   <span>Google Maps</span>
@@ -199,7 +199,7 @@ function NextGameCard({ game }: { game: Game }) {
                   href={getAppleMapsUrl(game.locationAddress)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono bg-[var(--accent)]/20 border border-[var(--accent)] rounded hover:bg-[var(--accent)]/30 text-[var(--accent)] transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono bg-[var(--accent)]/20 border border-[var(--accent)] rounded hover:bg-[var(--accent)]/30 text-[var(--foreground)] transition-colors"
                 >
                   <AppleMapsIcon className="w-4 h-4" />
                   <span>Apple Maps</span>
@@ -253,15 +253,10 @@ function GameCard({ game, index, isNextGame }: { game: Game; index: number; isNe
               {game.time || '--:--'}
             </div>
           </div>
-          {game.result && (
-            <div className={`px-2 py-0.5 font-mono text-xs ${game.result.startsWith('W') ? 'result-win' : 'result-loss'}`}>
-              {game.result}
-            </div>
-          )}
         </div>
         <div>
           <span className="text-xs text-[var(--muted)]">vs </span>
-          <span className={`font-display text-lg ${game.isUpcoming ? 'text-[var(--upcoming)]' : ''}`}>
+          <span className="font-display text-lg text-[var(--foreground)]">
             {game.opponent}
           </span>
         </div>
@@ -295,7 +290,7 @@ function GameCard({ game, index, isNextGame }: { game: Game; index: number; isNe
         {/* Opponent */}
         <div className="flex-1 text-center">
           <div className="text-xs uppercase tracking-widest text-[var(--muted)] mb-1">VS</div>
-          <div className={`font-display text-xl ${game.isUpcoming ? 'text-[var(--upcoming)] glow-upcoming' : ''}`}>
+          <div className="font-display text-xl text-[var(--foreground)]">
             {game.opponent}
           </div>
         </div>
@@ -310,20 +305,16 @@ function GameCard({ game, index, isNextGame }: { game: Game; index: number; isNe
           />
         </div>
 
-        {/* Result */}
+        {/* Status */}
         <div className="min-w-[80px] text-right shrink-0">
-          {game.result ? (
-            <div className={`inline-block px-2 py-1 font-mono text-sm ${game.result.startsWith('W') ? 'result-win' : 'result-loss'}`}>
-              {game.result}
-            </div>
-          ) : game.isUpcoming ? (
+          {game.isUpcoming && (
             <div className="inline-flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[var(--upcoming)] animate-pulse" />
-              <span className="font-mono text-xs text-[var(--upcoming)] uppercase">
+              <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" />
+              <span className="font-mono text-xs text-[var(--accent)] uppercase">
                 Upcoming
               </span>
             </div>
-          ) : null}
+          )}
         </div>
       </div>
     </div>
@@ -382,7 +373,7 @@ export default function Home() {
         {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -right-20 -top-20 w-72 md:w-96 h-72 md:h-96 rounded-full bg-[var(--accent)] opacity-5 blur-3xl" />
-          <div className="absolute -left-40 bottom-0 w-64 md:w-80 h-64 md:h-80 rounded-full bg-[var(--upcoming)] opacity-5 blur-3xl" />
+          <div className="absolute -left-40 bottom-0 w-64 md:w-80 h-64 md:h-80 rounded-full bg-[var(--accent)] opacity-5 blur-3xl" />
           {/* Diagonal stripes */}
           <div className="absolute right-0 top-0 w-1/4 md:w-1/3 h-full stripe-pattern opacity-10 skew-x-12" />
         </div>
@@ -428,7 +419,7 @@ export default function Home() {
             <LoadingSkeleton />
           ) : error ? (
             <div className="text-center py-12">
-              <div className="font-display text-xl text-[var(--loss)] mb-2">ERROR</div>
+              <div className="font-display text-xl text-red-500 mb-2">ERROR</div>
               <div className="font-mono text-sm text-[var(--muted)]">{error}</div>
             </div>
           ) : schedule?.games.length === 0 ? (
