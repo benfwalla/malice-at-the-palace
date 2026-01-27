@@ -21,9 +21,99 @@ interface ScheduleData {
   fetchedAt: string;
 }
 
+// Map pin icon
+function MapPinIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  );
+}
+
+// External link icon
+function ExternalLinkIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <polyline points="15,3 21,3 21,9" />
+      <line x1="10" y1="14" x2="21" y2="3" />
+    </svg>
+  );
+}
+
+// Google Maps icon
+function GoogleMapsIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+    </svg>
+  );
+}
+
+// Apple Maps icon (simplified map icon)
+function AppleMapsIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+    </svg>
+  );
+}
+
+function getGoogleMapsUrl(address: string): string {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+}
+
+function getAppleMapsUrl(address: string): string {
+  return `https://maps.apple.com/?q=${encodeURIComponent(address)}`;
+}
+
+function LocationDisplay({ location, locationCode, address }: { location: string; locationCode: string; address: string }) {
+  if (!address) {
+    return (
+      <div className="font-body text-sm md:text-base">
+        {location || locationCode}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <MapPinIcon className="w-4 h-4 text-[var(--accent)]" />
+        <span className="font-body text-sm md:text-base">{location || locationCode}</span>
+      </div>
+      <div className="font-mono text-xs text-[var(--muted)] pl-6">{address}</div>
+      <div className="flex gap-3 pl-6">
+        <a
+          href={getGoogleMapsUrl(address)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-mono bg-[var(--card-bg)] border border-[var(--border)] rounded hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+          title="Open in Google Maps"
+        >
+          <GoogleMapsIcon className="w-3.5 h-3.5" />
+          <span>Google</span>
+          <ExternalLinkIcon className="w-3 h-3 opacity-50" />
+        </a>
+        <a
+          href={getAppleMapsUrl(address)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-mono bg-[var(--card-bg)] border border-[var(--border)] rounded hover:border-[var(--upcoming)] hover:text-[var(--upcoming)] transition-colors"
+          title="Open in Apple Maps"
+        >
+          <AppleMapsIcon className="w-3.5 h-3.5" />
+          <span>Apple</span>
+          <ExternalLinkIcon className="w-3 h-3 opacity-50" />
+        </a>
+      </div>
+    </div>
+  );
+}
+
 function GameCard({ game, index }: { game: Game; index: number }) {
   const isWin = game.result.startsWith('W');
-  const isLoss = game.result.startsWith('L');
 
   if (game.isNoGame) {
     return (
@@ -46,10 +136,10 @@ function GameCard({ game, index }: { game: Game; index: number }) {
       className={`game-card animate-slide-in ${game.isUpcoming ? 'upcoming' : 'past'} p-4 md:p-6`}
       style={{ animationDelay: `${index * 0.05}s` }}
     >
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 lg:gap-6">
         {/* Date & Time */}
-        <div className="flex items-center gap-4 md:gap-6 min-w-[180px]">
-          <div className="text-center">
+        <div className="flex items-center gap-4 md:gap-6 min-w-[180px] shrink-0">
+          <div className="text-center min-w-[60px]">
             <div className="font-display text-2xl md:text-3xl text-[var(--foreground)]">
               {game.date.split(' ')[1]}
             </div>
@@ -58,32 +148,31 @@ function GameCard({ game, index }: { game: Game; index: number }) {
             </div>
           </div>
           <div className="h-12 w-px bg-[var(--border)]" />
-          <div className="font-mono text-lg md:text-xl text-[var(--accent)]">
+          <div className="font-mono text-lg md:text-xl text-[var(--accent)] min-w-[50px]">
             {game.time || '--:--'}
           </div>
         </div>
 
         {/* Opponent */}
-        <div className="flex-1 md:text-center">
+        <div className="flex-1 lg:text-center">
           <div className="text-xs uppercase tracking-widest text-[var(--muted)] mb-1">VS</div>
           <div className={`font-display text-xl md:text-2xl ${game.isUpcoming ? 'text-[var(--upcoming)] glow-upcoming animate-pulse-glow' : ''}`}>
             {game.opponent}
           </div>
         </div>
 
-        {/* Location */}
-        <div className="flex-1 md:text-right">
-          <div className="text-xs uppercase tracking-widest text-[var(--muted)] mb-1">Location</div>
-          <div className="font-body text-sm md:text-base">
-            {game.location || game.locationCode}
-          </div>
-          {game.locationAddress && (
-            <div className="font-mono text-xs text-[var(--muted)] mt-1">{game.locationAddress}</div>
-          )}
+        {/* Location with map links */}
+        <div className="flex-1 lg:text-left">
+          <div className="text-xs uppercase tracking-widest text-[var(--muted)] mb-2">Location</div>
+          <LocationDisplay
+            location={game.location}
+            locationCode={game.locationCode}
+            address={game.locationAddress}
+          />
         </div>
 
         {/* Result */}
-        <div className="min-w-[100px] text-right">
+        <div className="min-w-[100px] text-right shrink-0 self-center">
           {game.result ? (
             <div
               className={`inline-block px-3 py-1 font-mono text-sm ${isWin ? 'result-win' : 'result-loss'}`}
@@ -111,14 +200,14 @@ function LoadingSkeleton() {
     <div className="space-y-4">
       {[...Array(8)].map((_, i) => (
         <div key={i} className="game-card p-6 animate-pulse">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-6">
             <div className="flex items-center gap-6">
               <div className="w-16 h-10 bg-[var(--muted)] rounded" />
               <div className="w-px h-12 bg-[var(--border)]" />
               <div className="w-14 h-6 bg-[var(--muted)] rounded" />
             </div>
             <div className="w-40 h-8 bg-[var(--muted)] rounded" />
-            <div className="w-32 h-6 bg-[var(--muted)] rounded" />
+            <div className="w-48 h-16 bg-[var(--muted)] rounded" />
             <div className="w-20 h-6 bg-[var(--muted)] rounded" />
           </div>
         </div>
@@ -213,6 +302,19 @@ export default function Home() {
                 <div className="font-body text-lg text-[var(--muted)]">
                   vs {nextGame.opponent}
                 </div>
+                {nextGame.locationAddress && (
+                  <div className="mt-2 flex gap-2">
+                    <a
+                      href={getGoogleMapsUrl(nextGame.locationAddress)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-mono bg-[var(--card-bg)] border border-[var(--border)] rounded hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+                    >
+                      <MapPinIcon className="w-3 h-3" />
+                      <span>Directions</span>
+                    </a>
+                  </div>
+                )}
               </div>
             )}
           </div>

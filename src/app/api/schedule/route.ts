@@ -14,8 +14,16 @@ export interface Game {
   isUpcoming: boolean;
 }
 
+// Location data with full addresses for map links
+const locationAddresses: Record<string, { name: string; address: string }> = {
+  'JR2': { name: 'Julia Richman (2nd floor Gym)', address: '305 East 68th Street, New York, NY 10065' },
+  'JR3': { name: 'Julia Richman (3rd floor Gym)', address: '305 East 68th Street, New York, NY 10065' },
+  'LAG': { name: 'LaGuardia H.S.', address: '100 Amsterdam Avenue, New York, NY 10023' },
+  'W50': { name: 'W50th Street Campus', address: '525 West 50th Street, New York, NY 10019' },
+  'RS': { name: 'Robert Simon', address: 'Avenue B & East 5th Street, New York, NY 10009' },
+};
+
 function parseDate(dateStr: string): Date | null {
-  // Parse dates like "Wed 12/10", "Mon 01/14", etc.
   const match = dateStr.match(/(\w+)\s+(\d{1,2})\/(\d{1,2})/);
   if (!match) return null;
 
@@ -23,14 +31,13 @@ function parseDate(dateStr: string): Date | null {
   const now = new Date();
   let year = now.getFullYear();
 
-  // Handle year rollover (if month is in the past but close to end of year)
   const monthNum = parseInt(month);
   const currentMonth = now.getMonth() + 1;
 
   if (monthNum < currentMonth && currentMonth >= 10 && monthNum <= 3) {
-    year = year + 1; // It's next year
+    year = year + 1;
   } else if (monthNum > currentMonth && currentMonth <= 3 && monthNum >= 10) {
-    year = year - 1; // It's last year
+    year = year - 1;
   }
 
   return new Date(year, monthNum - 1, parseInt(day));
@@ -43,7 +50,7 @@ export async function GET() {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
       },
-      next: { revalidate: 300 }, // Cache for 5 minutes
+      next: { revalidate: 300 },
     });
 
     if (!response.ok) {
@@ -57,7 +64,6 @@ export async function GET() {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
 
-    // Find the schedule table in the middle section
     const scheduleTable = $('.payMidWrapper table').first();
 
     scheduleTable.find('tr').each((_, row) => {
@@ -67,7 +73,6 @@ export async function GET() {
         const locationLink = $(cells[1]).find('a').first();
         const locationCode = locationLink.text().trim();
         const locationPopup = $(cells[1]).find('.midd strong').text().trim();
-        const locationAddress = $(cells[1]).find('.midd .rowbcolor').text().trim().split('\n')[1]?.trim() || '';
         const timeCell = $(cells[2]).text().trim();
         const opponentCell = $(cells[3]).find('a').first().text().trim();
         const resultCell = $(cells[4]).text().trim();
@@ -77,10 +82,15 @@ export async function GET() {
           const fullDate = parseDate(dateCell);
           const isUpcoming = fullDate ? fullDate >= now && !isNoGame : false;
 
+          // Get the full address from our lookup table
+          const locationData = locationAddresses[locationCode];
+          const locationName = locationPopup || locationData?.name || locationCode;
+          const locationAddress = locationData?.address || '';
+
           games.push({
             date: dateCell,
             fullDate,
-            location: locationPopup || locationCode,
+            location: locationName,
             locationCode,
             locationAddress,
             time: timeCell,
@@ -93,7 +103,6 @@ export async function GET() {
       }
     });
 
-    // Sort games by date
     games.sort((a, b) => {
       if (!a.fullDate || !b.fullDate) return 0;
       return a.fullDate.getTime() - b.fullDate.getTime();
