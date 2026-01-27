@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import * as cheerio from 'cheerio';
 
 export interface Game {
   date: string;
@@ -13,6 +12,25 @@ export interface Game {
   isNoGame: boolean;
   isUpcoming: boolean;
 }
+
+// Schedule data from NY Urban (Team ID: 910085)
+// Last updated: January 27, 2026
+const scheduleData = [
+  { date: 'Wed 12/10', locationCode: 'JR2', time: '7:00', opponent: 'Fidouchiaries', result: 'L 51-50' },
+  { date: 'Mon 12/15', locationCode: '', time: '', opponent: '*** No Game This Week', result: '' },
+  { date: 'Mon 01/05', locationCode: '', time: '', opponent: '*** No Game This Week', result: '' },
+  { date: 'Wed 01/14', locationCode: 'LAG', time: '7:00', opponent: 'K-Crew', result: 'L 63-43' },
+  { date: 'Tue 01/20', locationCode: 'JR2', time: '8:05', opponent: 'Winning Aint Easy', result: 'L 60-54' },
+  { date: 'Wed 01/28', locationCode: 'W50', time: '9:15', opponent: 'One More Beer', result: '' },
+  { date: 'Mon 02/02', locationCode: '', time: '', opponent: '*** No Game This Week', result: '' },
+  { date: 'Mon 02/09', locationCode: 'JR3', time: '8:05', opponent: 'Eight-Niners', result: '' },
+  { date: 'Wed 02/18', locationCode: 'RS', time: '8:10', opponent: 'Stay Me7o', result: '' },
+  { date: 'Mon 02/23', locationCode: '', time: '', opponent: '*** No Game This Week', result: '' },
+  { date: 'Mon 03/02', locationCode: 'JR3', time: '8:05', opponent: 'TBD', result: '' },
+  { date: 'Mon 03/09', locationCode: 'JR2', time: '7:00', opponent: 'TBD', result: '' },
+  { date: 'Wed 03/18', locationCode: 'JR2', time: '9:10', opponent: 'TBD', result: '' },
+  { date: 'Tue 03/24', locationCode: 'JR2', time: '9:10', opponent: 'TBD', result: '' },
+];
 
 // Location data with full addresses for map links
 const locationAddresses: Record<string, { name: string; address: string }> = {
@@ -34,10 +52,11 @@ function parseDate(dateStr: string): Date | null {
   const monthNum = parseInt(month);
   const currentMonth = now.getMonth() + 1;
 
-  if (monthNum < currentMonth && currentMonth >= 10 && monthNum <= 3) {
-    year = year + 1;
-  } else if (monthNum > currentMonth && currentMonth <= 3 && monthNum >= 10) {
-    year = year - 1;
+  // Handle year rollover for winter season spanning Dec-Mar
+  if (monthNum >= 12 && currentMonth <= 3) {
+    year = year - 1; // December games from previous year
+  } else if (monthNum <= 3 && currentMonth >= 10) {
+    year = year + 1; // Jan-Mar games for next year
   }
 
   return new Date(year, monthNum - 1, parseInt(day));
@@ -45,64 +64,33 @@ function parseDate(dateStr: string): Date | null {
 
 export async function GET() {
   try {
-    const response = await fetch('https://www.nyurban.com/team-details/?team_id=910085', {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-      },
-      next: { revalidate: 300 },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch schedule: ${response.status}`);
-    }
-
-    const html = await response.text();
-    const $ = cheerio.load(html);
-
-    const games: Game[] = [];
     const now = new Date();
     now.setHours(0, 0, 0, 0);
 
-    const scheduleTable = $('.payMidWrapper table').first();
+    const games: Game[] = scheduleData.map((game) => {
+      const isNoGame = game.opponent.includes('No Game');
+      const fullDate = parseDate(game.date);
+      const isUpcoming = fullDate ? fullDate >= now && !isNoGame && !game.result : false;
 
-    scheduleTable.find('tr').each((_, row) => {
-      const cells = $(row).find('td');
-      if (cells.length >= 5) {
-        const dateCell = $(cells[0]).text().trim();
-        const locationLink = $(cells[1]).find('a').first();
-        const locationCode = locationLink.text().trim();
-        const locationPopup = $(cells[1]).find('.midd strong').text().trim();
-        const timeCell = $(cells[2]).text().trim();
-        const opponentCell = $(cells[3]).find('a').first().text().trim();
-        const resultCell = $(cells[4]).text().trim();
+      const locationData = locationAddresses[game.locationCode];
+      const locationName = locationData?.name || game.locationCode;
+      const locationAddress = locationData?.address || '';
 
-        if (dateCell && dateCell.match(/\w+\s+\d+\/\d+/)) {
-          const isNoGame = opponentCell.includes('No Game');
-          const fullDate = parseDate(dateCell);
-          const isUpcoming = fullDate ? fullDate >= now && !isNoGame : false;
-
-          // Get the full address from our lookup table
-          const locationData = locationAddresses[locationCode];
-          const locationName = locationPopup || locationData?.name || locationCode;
-          const locationAddress = locationData?.address || '';
-
-          games.push({
-            date: dateCell,
-            fullDate,
-            location: locationName,
-            locationCode,
-            locationAddress,
-            time: timeCell,
-            opponent: opponentCell,
-            result: resultCell,
-            isNoGame,
-            isUpcoming,
-          });
-        }
-      }
+      return {
+        date: game.date,
+        fullDate,
+        location: locationName,
+        locationCode: game.locationCode,
+        locationAddress,
+        time: game.time,
+        opponent: game.opponent,
+        result: game.result,
+        isNoGame,
+        isUpcoming,
+      };
     });
 
+    // Sort by date
     games.sort((a, b) => {
       if (!a.fullDate || !b.fullDate) return 0;
       return a.fullDate.getTime() - b.fullDate.getTime();
@@ -112,11 +100,12 @@ export async function GET() {
       games,
       teamId: '910085',
       fetchedAt: new Date().toISOString(),
+      source: 'https://www.nyurban.com/team-details/?team_id=910085',
     });
   } catch (error) {
-    console.error('Error fetching schedule:', error);
+    console.error('Error processing schedule:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch schedule' },
+      { error: 'Failed to process schedule' },
       { status: 500 }
     );
   }
