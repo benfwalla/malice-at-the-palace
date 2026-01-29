@@ -41,16 +41,32 @@ const locationAddresses: Record<string, { name: string; address: string }> = {
   'RS': { name: 'Robert Simon', address: 'Avenue B & East 5th Street, New York, NY 10009' },
 };
 
+// Get date parts in New York timezone
+function getNYDateParts(): { year: number; month: number; day: number } {
+  const now = new Date();
+  const year = parseInt(now.toLocaleString('en-US', { timeZone: 'America/New_York', year: 'numeric' }));
+  const month = parseInt(now.toLocaleString('en-US', { timeZone: 'America/New_York', month: 'numeric' }));
+  const day = parseInt(now.toLocaleString('en-US', { timeZone: 'America/New_York', day: 'numeric' }));
+  return { year, month, day };
+}
+
+// Get today's date at midnight, using NY timezone for the date
+function getTodayInNY(): Date {
+  const { year, month, day } = getNYDateParts();
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
 function parseDate(dateStr: string): Date | null {
   const match = dateStr.match(/(\w+)\s+(\d{1,2})\/(\d{1,2})/);
   if (!match) return null;
 
   const [, , month, day] = match;
-  const now = new Date();
-  let year = now.getFullYear();
+
+  // Get current year/month in NY timezone for year rollover logic
+  const { year: currentYear, month: currentMonth } = getNYDateParts();
+  let year = currentYear;
 
   const monthNum = parseInt(month);
-  const currentMonth = now.getMonth() + 1;
 
   // Handle year rollover for winter season spanning Dec-Mar
   if (monthNum >= 12 && currentMonth <= 3) {
@@ -59,18 +75,20 @@ function parseDate(dateStr: string): Date | null {
     year = year + 1; // Jan-Mar games for next year
   }
 
-  return new Date(year, monthNum - 1, parseInt(day));
+  // Use UTC to avoid timezone issues - all dates are just "calendar dates"
+  return new Date(Date.UTC(year, monthNum - 1, parseInt(day)));
 }
 
 export async function GET() {
   try {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
+    // Get today's date in New York timezone for comparison
+    // A game remains "upcoming" for the entire day in NY time
+    const todayInNY = getTodayInNY();
 
     const games: Game[] = scheduleData.map((game) => {
       const isNoGame = game.opponent.includes('No Game');
       const fullDate = parseDate(game.date);
-      const isUpcoming = fullDate ? fullDate >= now && !isNoGame && !game.result : false;
+      const isUpcoming = fullDate ? fullDate >= todayInNY && !isNoGame && !game.result : false;
 
       const locationData = locationAddresses[game.locationCode];
       const locationName = locationData?.name || game.locationCode;
