@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 interface Game {
   date: string;
-  fullDate: string | null;
+  fullDate: string | null; // ISO string from API
   location: string;
   locationCode: string;
   locationAddress: string;
@@ -82,6 +82,24 @@ function ClockIcon({ className }: { className?: string }) {
   );
 }
 
+function getRelativeTime(dateStr: string | null): string | null {
+  if (!dateStr) return null;
+  const gameDate = new Date(dateStr);
+  const now = new Date();
+  // Zero out time portions for day-level comparison
+  const gameDateOnly = new Date(gameDate.getFullYear(), gameDate.getMonth(), gameDate.getDate());
+  const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diffMs = gameDateOnly.getTime() - nowDateOnly.getTime();
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Tomorrow';
+  if (diffDays < 7) return `in ${diffDays} days`;
+  if (diffDays < 14) return 'in 1 week';
+  const weeks = Math.floor(diffDays / 7);
+  return `in ${weeks} weeks`;
+}
+
 function getGoogleMapsUrl(address: string): string {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 }
@@ -147,6 +165,11 @@ function NextGameCard({ game }: { game: Game }) {
           <span className="font-mono text-sm text-[var(--accent-light)] uppercase tracking-widest font-bold">
             Next Game
           </span>
+          {game.fullDate && (
+            <span className="font-mono text-sm text-[var(--accent)] opacity-80 ml-1">
+              — {getRelativeTime(game.fullDate)}
+            </span>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
