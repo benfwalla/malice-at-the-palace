@@ -86,10 +86,12 @@ function getRelativeTime(dateStr: string | null): string | null {
   if (!dateStr) return null;
   const gameDate = new Date(dateStr);
   const now = new Date();
-  // Zero out time portions for day-level comparison
-  const gameDateOnly = new Date(gameDate.getFullYear(), gameDate.getMonth(), gameDate.getDate());
-  const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const diffMs = gameDateOnly.getTime() - nowDateOnly.getTime();
+  // Use UTC for game date (stored as UTC midnight) and NY local for "today"
+  const gameDay = Date.UTC(gameDate.getUTCFullYear(), gameDate.getUTCMonth(), gameDate.getUTCDate());
+  // Get current date in NY timezone
+  const nyNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  const todayDay = Date.UTC(nyNow.getFullYear(), nyNow.getMonth(), nyNow.getDate());
+  const diffMs = gameDay - todayDay;
   const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
 
   if (diffDays === 0) return 'Today';
