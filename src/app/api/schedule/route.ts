@@ -26,10 +26,10 @@ const scheduleData = [
   { date: 'Mon 02/09', locationCode: 'JR3', time: '8:05pm', opponent: 'Eight-Niners', result: 'W 62-57' },
   { date: 'Wed 02/18', locationCode: 'RS', time: '8:10pm', opponent: 'Stay Me7o', result: 'L 69-47' },
   { date: 'Mon 02/23', locationCode: '', time: '', opponent: '*** No Game This Week', result: '' },
-  { date: 'Mon 03/02', locationCode: 'JR3', time: '8:05pm', opponent: 'Fidouchiaries', result: '' },
-  { date: 'Mon 03/09', locationCode: 'JR2', time: '7:00pm', opponent: 'One More Beer', result: '' },
-  { date: 'Wed 03/18', locationCode: 'JR2', time: '9:10pm', opponent: 'Winning Aint Easy', result: '' },
-  { date: 'Tue 03/24', locationCode: 'JR2', time: '9:10pm', opponent: 'K-Crew', result: '' },
+  { date: 'Mon 03/02', locationCode: 'W50', time: '9:15pm', opponent: 'New York Ballers', result: '' },
+  { date: 'Mon 03/09', locationCode: 'RS', time: '9:15pm', opponent: 'Atlanta Hawk Tuahs', result: '' },
+  { date: 'Wed 03/18', locationCode: 'JR3', time: '7:00pm', opponent: 'Pippen Aint Easy', result: '' },
+  { date: 'Tue 03/24', locationCode: 'JR3', time: '7:00pm', opponent: 'Harthorne Wingos', result: '' },
 ];
 
 // Location data with full addresses for map links
