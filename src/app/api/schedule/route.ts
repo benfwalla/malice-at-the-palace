@@ -14,22 +14,22 @@ export interface Game {
 }
 
 // Schedule data from NY Urban (Team ID: 910085)
-// Last updated: January 27, 2026
+// Last updated: March 1, 2026
 const scheduleData = [
   { date: 'Wed 12/10', locationCode: 'JR2', time: '7:00pm', opponent: 'Fidouchiaries', result: 'L 51-50' },
   { date: 'Mon 12/15', locationCode: '', time: '', opponent: '*** No Game This Week', result: '' },
   { date: 'Mon 01/05', locationCode: '', time: '', opponent: '*** No Game This Week', result: '' },
   { date: 'Wed 01/14', locationCode: 'LAG', time: '7:00pm', opponent: 'K-Crew', result: 'L 63-43' },
   { date: 'Tue 01/20', locationCode: 'JR2', time: '8:05pm', opponent: 'Winning Aint Easy', result: 'L 60-54' },
-  { date: 'Wed 01/28', locationCode: 'W50', time: '9:15pm', opponent: 'One More Beer', result: '' },
+  { date: 'Wed 01/28', locationCode: 'W50', time: '9:15pm', opponent: 'One More Beer', result: 'W 53-37' },
   { date: 'Mon 02/02', locationCode: '', time: '', opponent: '*** No Game This Week', result: '' },
-  { date: 'Mon 02/09', locationCode: 'JR3', time: '8:05pm', opponent: 'Eight-Niners', result: '' },
-  { date: 'Wed 02/18', locationCode: 'RS', time: '8:10pm', opponent: 'Stay Me7o', result: '' },
+  { date: 'Mon 02/09', locationCode: 'JR3', time: '8:05pm', opponent: 'Eight-Niners', result: 'W 62-57' },
+  { date: 'Wed 02/18', locationCode: 'RS', time: '8:10pm', opponent: 'Stay Me7o', result: 'L 69-47' },
   { date: 'Mon 02/23', locationCode: '', time: '', opponent: '*** No Game This Week', result: '' },
-  { date: 'Mon 03/02', locationCode: 'JR3', time: '8:05pm', opponent: 'TBD', result: '' },
-  { date: 'Mon 03/09', locationCode: 'JR2', time: '7:00pm', opponent: 'TBD', result: '' },
-  { date: 'Wed 03/18', locationCode: 'JR2', time: '9:10pm', opponent: 'TBD', result: '' },
-  { date: 'Tue 03/24', locationCode: 'JR2', time: '9:10pm', opponent: 'TBD', result: '' },
+  { date: 'Mon 03/02', locationCode: 'JR3', time: '8:05pm', opponent: 'Fidouchiaries', result: '' },
+  { date: 'Mon 03/09', locationCode: 'JR2', time: '7:00pm', opponent: 'One More Beer', result: '' },
+  { date: 'Wed 03/18', locationCode: 'JR2', time: '9:10pm', opponent: 'Winning Aint Easy', result: '' },
+  { date: 'Tue 03/24', locationCode: 'JR2', time: '9:10pm', opponent: 'K-Crew', result: '' },
 ];
 
 // Location data with full addresses for map links
