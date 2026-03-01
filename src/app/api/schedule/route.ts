@@ -14,7 +14,7 @@ export interface Game {
 }
 
 // Schedule data from NY Urban (Team ID: 910085)
-// Last updated: January 27, 2026
+// Last updated: March 1, 2026
 const scheduleData = [
   { date: 'Wed 12/10', locationCode: 'JR2', time: '7:00pm', opponent: 'Fidouchiaries', result: 'L 51-50' },
   { date: 'Mon 12/15', locationCode: '', time: '', opponent: '*** No Game This Week', result: '' },
@@ -26,10 +26,10 @@ const scheduleData = [
   { date: 'Mon 02/09', locationCode: 'JR3', time: '8:05pm', opponent: 'Eight-Niners', result: '' },
   { date: 'Wed 02/18', locationCode: 'RS', time: '8:10pm', opponent: 'Stay Me7o', result: '' },
   { date: 'Mon 02/23', locationCode: '', time: '', opponent: '*** No Game This Week', result: '' },
-  { date: 'Mon 03/02', locationCode: 'JR3', time: '8:05pm', opponent: 'TBD', result: '' },
-  { date: 'Mon 03/09', locationCode: 'JR2', time: '7:00pm', opponent: 'TBD', result: '' },
-  { date: 'Wed 03/18', locationCode: 'JR2', time: '9:10pm', opponent: 'TBD', result: '' },
-  { date: 'Tue 03/24', locationCode: 'JR2', time: '9:10pm', opponent: 'TBD', result: '' },
+  { date: 'Mon 03/02', locationCode: 'W50', time: '9:15pm', opponent: 'New York Ballers', result: '' },
+  { date: 'Mon 03/09', locationCode: 'RS', time: '9:15pm', opponent: 'Atlanta Hawk Tuahs', result: '' },
+  { date: 'Wed 03/18', locationCode: 'JR3', time: '7:00pm', opponent: 'Pippen Aint Easy', result: '' },
+  { date: 'Tue 03/24', locationCode: 'JR3', time: '7:00pm', opponent: 'Harthorne Wingos', result: '' },
 ];
 
 // Location data with full addresses for map links
