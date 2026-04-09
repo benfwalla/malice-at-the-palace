@@ -31,7 +31,7 @@ const locationInfo: Record<string, { name: string; address: string; notes: strin
   },
   BS: {
     name: 'Baruch Simon',
-    address: '20th Street, New York, NY 10010',
+    address: '330 East 20th St, New York, NY 10010',
     notes: 'Bet 1st & 2nd. Enter on 20th street. No Spectators.',
   },
 };
