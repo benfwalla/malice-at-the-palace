@@ -1,17 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 interface Game {
   date: string;
-  fullDate: string | null; // ISO string from API
+  fullDate: string | null;
   location: string;
   locationCode: string;
   locationAddress: string;
+  locationNotes: string;
   time: string;
   opponent: string;
-  result: string;
-  isNoGame: boolean;
   isUpcoming: boolean;
 }
 
@@ -21,85 +21,23 @@ interface ScheduleData {
   fetchedAt: string;
 }
 
-// Map pin icon
-function MapPinIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-      <circle cx="12" cy="10" r="3" />
-    </svg>
-  );
-}
-
-// External link icon
-function ExternalLinkIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-      <polyline points="15,3 21,3 21,9" />
-      <line x1="10" y1="14" x2="21" y2="3" />
-    </svg>
-  );
-}
-
-// Google Maps icon
-function GoogleMapsIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-    </svg>
-  );
-}
-
-// Apple Maps icon
-function AppleMapsIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-    </svg>
-  );
-}
-
-// Calendar icon
-function CalendarIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
-  );
-}
-
-// Clock icon
-function ClockIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12,6 12,12 16,14" />
-    </svg>
-  );
-}
+const MONTH_NAMES = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const DATE_RE = /(\w+)\s+(\d{1,2})\/(\d{1,2})/;
 
 function getRelativeTime(dateStr: string | null): string | null {
   if (!dateStr) return null;
   const gameDate = new Date(dateStr);
   const now = new Date();
-  // Use UTC for game date (stored as UTC midnight) and NY local for "today"
-  const gameDay = Date.UTC(gameDate.getUTCFullYear(), gameDate.getUTCMonth(), gameDate.getUTCDate());
-  // Get current date in NY timezone
   const nyNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  const gameDay = Date.UTC(gameDate.getUTCFullYear(), gameDate.getUTCMonth(), gameDate.getUTCDate());
   const todayDay = Date.UTC(nyNow.getFullYear(), nyNow.getMonth(), nyNow.getDate());
-  const diffMs = gameDay - todayDay;
-  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+  const diffDays = Math.round((gameDay - todayDay) / (1000 * 60 * 60 * 24));
 
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Tomorrow';
-  if (diffDays < 7) return `in ${diffDays} days`;
-  if (diffDays < 14) return 'in 1 week';
-  const weeks = Math.floor(diffDays / 7);
-  return `in ${weeks} weeks`;
+  if (diffDays < 0) return null;
+  if (diffDays === 0) return 'TODAY';
+  if (diffDays === 1) return 'TOMORROW';
+  if (diffDays < 7) return `IN ${diffDays} DAYS`;
+  return null;
 }
 
 function getGoogleMapsUrl(address: string): string {
@@ -110,259 +48,157 @@ function getAppleMapsUrl(address: string): string {
   return `https://maps.apple.com/?q=${encodeURIComponent(address)}`;
 }
 
-function LocationDisplay({ location, locationCode, address }: { location: string; locationCode: string; address: string }) {
-  if (!address) {
-    return (
-      <div className="font-body text-sm">
-        {location || locationCode}
-      </div>
-    );
-  }
+function getGoogleCalendarUrl(game: Game): string {
+  if (!game.fullDate) return '#';
 
+  const gameDate = new Date(game.fullDate);
+  const timeMatch = game.time.match(/(\d{1,2}):(\d{2})(am|pm)/i);
+  if (!timeMatch) return '#';
+
+  let hours = parseInt(timeMatch[1]);
+  const minutes = parseInt(timeMatch[2]);
+  const ampm = timeMatch[3].toLowerCase();
+
+  if (ampm === 'pm' && hours !== 12) hours += 12;
+  if (ampm === 'am' && hours === 12) hours = 0;
+
+  const year = gameDate.getUTCFullYear();
+  const month = String(gameDate.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(gameDate.getUTCDate()).padStart(2, '0');
+  const h = String(hours).padStart(2, '0');
+  const m = String(minutes).padStart(2, '0');
+
+  const startStr = `${year}${month}${day}T${h}${m}00`;
+  const endHours = hours + 1;
+  const endMinutes = minutes + 30;
+  const endH = String(endMinutes >= 60 ? endHours + 1 : endHours).padStart(2, '0');
+  const endM = String(endMinutes >= 60 ? endMinutes - 60 : endMinutes).padStart(2, '0');
+  const endStr = `${year}${month}${day}T${endH}${endM}00`;
+
+  const title = `Malice at the Palace vs ${game.opponent}`;
+  const location = game.locationAddress || game.location;
+  const details = `NY Urban League Basketball\n${game.location}${game.locationNotes ? '\n' + game.locationNotes : ''}`;
+
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startStr}/${endStr}&ctz=America/New_York&location=${encodeURIComponent(location)}&details=${encodeURIComponent(details)}`;
+}
+
+function ChevronDown({ className }: { className?: string }) {
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <MapPinIcon className="w-4 h-4 text-[var(--accent)] shrink-0" />
-        <span className="font-body text-sm">{location || locationCode}</span>
-      </div>
-      <div className="font-mono text-xs text-[var(--muted)] pl-6">{address}</div>
-      <div className="flex flex-wrap gap-2 pl-6">
-        <a
-          href={getGoogleMapsUrl(address)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-mono bg-[var(--card-bg)] border border-[var(--border)] rounded hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
-          title="Open in Google Maps"
-        >
-          <GoogleMapsIcon className="w-3.5 h-3.5" />
-          <span>Google</span>
-          <ExternalLinkIcon className="w-3 h-3 opacity-50" />
-        </a>
-        <a
-          href={getAppleMapsUrl(address)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-mono bg-[var(--card-bg)] border border-[var(--border)] rounded hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
-          title="Open in Apple Maps"
-        >
-          <AppleMapsIcon className="w-3.5 h-3.5" />
-          <span>Apple</span>
-          <ExternalLinkIcon className="w-3 h-3 opacity-50" />
-        </a>
-      </div>
-    </div>
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6,9 12,15 18,9" />
+    </svg>
   );
 }
 
-function NextGameCard({ game }: { game: Game }) {
+function MapPinIcon({ className }: { className?: string }) {
   return (
-    <div className="relative mt-8 p-6 md:p-8 bg-[#0f1f15] border-2 border-[var(--accent)] rounded-lg overflow-hidden">
-      {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/10 to-transparent" />
+    <svg className={className} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  );
+}
 
-      {/* Content */}
-      <div className="relative">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="w-3 h-3 rounded-full bg-[var(--accent)] animate-pulse" />
-          <span className="font-mono text-sm text-[var(--accent-light)] uppercase tracking-widest font-bold">
-            Next Game
-          </span>
-          {game.fullDate && (
-            <span className="font-mono text-sm text-[var(--accent)] opacity-80 ml-1">
-              — {getRelativeTime(game.fullDate)}
-            </span>
-          )}
+function MapLink({ href, isNext, children }: { href: string; isNext: boolean; children: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono rounded-md border ${
+        isNext ? 'border-black/30 text-black/80' : 'border-[var(--border)]'
+      }`}
+    >
+      {children}
+    </a>
+  );
+}
+
+function GameRow({ game, index, isNext }: { game: Game; index: number; isNext: boolean }) {
+  const [expanded, setExpanded] = useState(isNext);
+
+  const relativeTime = getRelativeTime(game.fullDate);
+  const dateParts = game.date.match(DATE_RE);
+  const dayOfWeek = dateParts ? dateParts[1] : '';
+  const monthNum = dateParts ? parseInt(dateParts[2]) : 0;
+  const dayNum = dateParts ? dateParts[3] : '';
+  const monthName = MONTH_NAMES[monthNum] || '';
+  const muted = isNext ? 'text-black/50' : 'text-[var(--muted)]';
+
+  return (
+    <div
+      className={`game-row animate-slide-in ${isNext ? 'next-game rounded-lg mb-2 border-b-0' : ''}`}
+      style={{ animationDelay: `${index * 0.06}s` }}
+    >
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full text-left px-3 py-3 md:px-5 md:py-4 flex items-center gap-3 md:gap-5 cursor-pointer"
+      >
+        <div className="text-center min-w-[48px] md:min-w-[56px]">
+          <div className="font-display text-2xl md:text-3xl leading-none">{dayNum}</div>
+          <div className={`font-mono text-[10px] md:text-xs uppercase ${muted}`}>{monthName}</div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Date & Time */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <CalendarIcon className="w-5 h-5 text-[var(--accent)]" />
-              <span className="font-display text-3xl md:text-4xl text-[var(--foreground)]">
-                {game.date}
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <ClockIcon className="w-5 h-5 text-[var(--accent)]" />
-              <span className="font-mono text-2xl text-[var(--foreground)]">
-                {game.time}
-              </span>
-            </div>
-          </div>
+        <div className="min-w-[72px] md:min-w-[90px]">
+          <div className={`font-body text-sm md:text-base ${muted}`}>{dayOfWeek}</div>
+          <div className="font-mono text-sm md:text-base font-bold">{game.time}</div>
+        </div>
 
-          {/* Opponent */}
-          <div className="flex flex-col justify-center">
-            <div className="text-xs uppercase tracking-widest text-[var(--muted)] mb-1">VS</div>
-            <div className="font-display text-2xl md:text-3xl text-[var(--foreground)]">
-              {game.opponent}
-            </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-display text-lg md:text-xl truncate flex items-center gap-1.5">
+            <MapPinIcon className={`shrink-0 ${isNext ? 'text-black/50' : 'text-[var(--muted)]'}`} />
+            {game.location}
           </div>
+        </div>
 
-          {/* Location */}
-          <div className="space-y-2">
-            <div className="text-xs uppercase tracking-widest text-[var(--muted)]">Location</div>
-            <div className="flex items-start gap-2">
-              <MapPinIcon className="w-5 h-5 text-[var(--accent)] shrink-0 mt-0.5" />
-              <div>
-                <div className="font-body text-base text-[var(--foreground)]">{game.location}</div>
-                <div className="font-mono text-xs text-[var(--muted)] mt-1">{game.locationAddress}</div>
+        {isNext && relativeTime && (
+          <div className="hidden md:block px-3 py-1 bg-black/10 rounded-full font-mono text-xs text-black/60">
+            {relativeTime}
+          </div>
+        )}
+
+        <a
+          href={getGoogleCalendarUrl(game)}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="shrink-0 p-1.5 rounded-md"
+          title="Add to Google Calendar"
+        >
+          <Image src="/gcal-icon.svg" alt="Add to Google Calendar" width={22} height={22} />
+        </a>
+
+        <ChevronDown className={`chevron shrink-0 ${expanded ? 'open' : ''} ${isNext ? 'text-black/40' : 'text-[var(--muted)]'}`} />
+      </button>
+
+      <div className={`details-panel ${expanded ? 'open' : ''}`}>
+        <div className="px-4 md:px-5 pb-4 pt-0">
+          <div className={`border-t pt-3 ml-[48px] md:ml-[56px] ${isNext ? 'border-black/20' : 'border-[var(--border)]'}`}>
+            <div className="mb-3">
+              <span className={`text-sm font-body ${isNext ? 'text-black/40' : 'text-[var(--muted)]'}`}>vs </span>
+              <span className="font-display text-lg">{game.opponent}</span>
+            </div>
+
+            <div className="flex items-start gap-2 mb-2">
+              <MapPinIcon className={`shrink-0 mt-0.5 ${isNext ? 'text-black/70' : 'text-[var(--muted)]'}`} />
+              <div className={`font-mono text-xs ${isNext ? 'text-black/70' : 'text-[var(--muted)]'}`}>{game.locationAddress}</div>
+            </div>
+
+            {game.locationNotes && (
+              <div className={`ml-[22px] mb-3 font-mono text-xs italic ${isNext ? 'text-black/60' : 'text-[var(--muted)]'}`}>
+                {game.locationNotes}
               </div>
-            </div>
+            )}
+
             {game.locationAddress && (
-              <div className="flex flex-wrap gap-2 mt-3">
-                <a
-                  href={getGoogleMapsUrl(game.locationAddress)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono bg-[var(--accent)]/20 border border-[var(--accent)] rounded hover:bg-[var(--accent)]/30 text-[var(--foreground)] transition-colors"
-                >
-                  <GoogleMapsIcon className="w-4 h-4" />
-                  <span>Google Maps</span>
-                </a>
-                <a
-                  href={getAppleMapsUrl(game.locationAddress)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono bg-[var(--accent)]/20 border border-[var(--accent)] rounded hover:bg-[var(--accent)]/30 text-[var(--foreground)] transition-colors"
-                >
-                  <AppleMapsIcon className="w-4 h-4" />
-                  <span>Apple Maps</span>
-                </a>
+              <div className="ml-[22px] flex flex-wrap gap-2">
+                <MapLink href={getGoogleMapsUrl(game.locationAddress)} isNext={isNext}>Google Maps</MapLink>
+                <MapLink href={getAppleMapsUrl(game.locationAddress)} isNext={isNext}>Apple Maps</MapLink>
               </div>
             )}
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function GameCard({ game, index, isNextGame }: { game: Game; index: number; isNextGame: boolean }) {
-  if (game.isNoGame) {
-    return (
-      <div
-        className="game-card past p-3 md:p-4 opacity-40"
-        style={{ animationDelay: `${index * 0.05}s` }}
-      >
-        <div className="flex items-center gap-3">
-          <div className="font-mono text-sm text-[var(--muted)]">{game.date}</div>
-          <div className="text-[var(--muted)] italic text-sm">No Game This Week</div>
-        </div>
-      </div>
-    );
-  }
-
-  // Skip rendering the next game in the list since it's featured above
-  if (isNextGame) return null;
-
-  return (
-    <div
-      className={`game-card animate-slide-in ${game.isUpcoming ? 'upcoming' : 'past'} p-3 md:p-5`}
-      style={{ animationDelay: `${index * 0.05}s` }}
-    >
-      {/* Mobile layout */}
-      <div className="flex flex-col gap-3 md:hidden">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="text-center min-w-[50px]">
-              <div className="font-display text-xl text-[var(--foreground)]">
-                {game.date.split(' ')[1]}
-              </div>
-              <div className="font-mono text-[10px] text-[var(--muted)] uppercase">
-                {game.date.split(' ')[0]}
-              </div>
-            </div>
-            <div className="h-8 w-px bg-[var(--border)]" />
-            <div className="font-mono text-base text-[var(--accent)]">
-              {game.time || '--:--'}
-            </div>
-          </div>
-        </div>
-        <div>
-          <span className="text-xs text-[var(--muted)]">vs </span>
-          <span className="font-display text-lg text-[var(--foreground)]">
-            {game.opponent}
-          </span>
-        </div>
-        {game.locationAddress && (
-          <LocationDisplay
-            location={game.location}
-            locationCode={game.locationCode}
-            address={game.locationAddress}
-          />
-        )}
-      </div>
-
-      {/* Desktop layout */}
-      <div className="hidden md:flex md:items-start justify-between gap-4">
-        {/* Date & Time */}
-        <div className="flex items-center gap-4 min-w-[160px] shrink-0">
-          <div className="text-center min-w-[55px]">
-            <div className="font-display text-2xl text-[var(--foreground)]">
-              {game.date.split(' ')[1]}
-            </div>
-            <div className="font-mono text-xs text-[var(--muted)] uppercase tracking-wider">
-              {game.date.split(' ')[0]}
-            </div>
-          </div>
-          <div className="h-10 w-px bg-[var(--border)]" />
-          <div className="font-mono text-lg text-[var(--accent)]">
-            {game.time || '--:--'}
-          </div>
-        </div>
-
-        {/* Opponent */}
-        <div className="flex-1 text-center">
-          <div className="text-xs uppercase tracking-widest text-[var(--muted)] mb-1">VS</div>
-          <div className="font-display text-xl text-[var(--foreground)]">
-            {game.opponent}
-          </div>
-        </div>
-
-        {/* Location */}
-        <div className="flex-1">
-          <div className="text-xs uppercase tracking-widest text-[var(--muted)] mb-2">Location</div>
-          <LocationDisplay
-            location={game.location}
-            locationCode={game.locationCode}
-            address={game.locationAddress}
-          />
-        </div>
-
-        {/* Status */}
-        <div className="min-w-[80px] text-right shrink-0">
-          {game.isUpcoming && (
-            <div className="inline-flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" />
-              <span className="font-mono text-xs text-[var(--accent)] uppercase">
-                Upcoming
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function LoadingSkeleton() {
-  return (
-    <div className="space-y-3">
-      {[...Array(6)].map((_, i) => (
-        <div key={i} className="game-card p-4 animate-pulse">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-10 bg-[var(--muted)] rounded" />
-              <div className="w-px h-10 bg-[var(--border)]" />
-              <div className="w-12 h-5 bg-[var(--muted)] rounded" />
-            </div>
-            <div className="w-32 h-6 bg-[var(--muted)] rounded" />
-            <div className="w-40 h-12 bg-[var(--muted)] rounded hidden md:block" />
-            <div className="w-16 h-5 bg-[var(--muted)] rounded" />
-          </div>
-        </div>
-      ))}
     </div>
   );
 }
@@ -388,93 +224,91 @@ export default function Home() {
     fetchSchedule();
   }, []);
 
-  const upcomingGames = schedule?.games.filter((g) => g.isUpcoming && !g.isNoGame) || [];
+  const upcomingGames = schedule?.games.filter((g) => g.isUpcoming) || [];
   const nextGame = upcomingGames[0];
 
   return (
-    <main className="min-h-screen">
-      {/* Hero Section */}
-      <header className="relative bg-gradient-to-br from-[#1a1a1a] via-[#0a0a0a] to-[#141414] pt-6 pb-8 md:pt-12 md:pb-12 px-4 md:px-8 overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -right-20 -top-20 w-72 md:w-96 h-72 md:h-96 rounded-full bg-[var(--accent)] opacity-5 blur-3xl" />
-          <div className="absolute -left-40 bottom-0 w-64 md:w-80 h-64 md:h-80 rounded-full bg-[var(--accent)] opacity-5 blur-3xl" />
-          {/* Diagonal stripes */}
-          <div className="absolute right-0 top-0 w-1/4 md:w-1/3 h-full stripe-pattern opacity-10 skew-x-12" />
+    <main className="min-h-screen bg-[var(--background)]">
+      <header className="relative overflow-hidden">
+        <div className="absolute inset-0">
+          <Image
+            src="/mural.jpg"
+            alt="Malice at the Palace"
+            fill
+            className="object-cover opacity-12"
+            style={{ objectPosition: '50% 40%' }}
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[var(--background)]/20 via-transparent via-70% to-[var(--background)]" />
         </div>
 
-        <div className="relative max-w-6xl mx-auto">
-          {/* Team name */}
-          <div>
-            <div className="font-mono text-[10px] md:text-sm text-[var(--accent)] tracking-[0.2em] md:tracking-[0.3em] uppercase mb-1 md:mb-2">
-              NY Urban League
-            </div>
-            <h1 className="font-display text-5xl md:text-7xl lg:text-8xl text-[var(--foreground)] leading-none glow-text animate-flicker">
-              MALICE
-            </h1>
-            <h1 className="font-display text-3xl md:text-5xl lg:text-6xl text-[var(--accent)] leading-none -mt-1 md:-mt-2">
-              AT THE PALACE
-            </h1>
+        <div className="relative max-w-2xl mx-auto px-4 md:px-8 pt-16 pb-12 md:pt-24 md:pb-16">
+          <div className="font-mono text-[10px] md:text-xs text-[var(--muted)] tracking-[0.2em] uppercase mb-1">
+            NY Urban League
           </div>
-
-          {/* Featured Next Game Card */}
-          {nextGame && <NextGameCard game={nextGame} />}
+          <h1 className="font-display text-5xl md:text-7xl text-[var(--foreground)] leading-[0.9]">
+            MALICE
+          </h1>
+          <p className="font-display text-3xl md:text-4xl text-[var(--muted)] leading-[0.9]">
+            AT THE PALACE
+          </p>
+          <div className="mt-3 flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-black border-2 border-[var(--border-dark)]" />
+            <span className="font-mono text-xs text-[var(--muted)]">Black Team</span>
+            <span className="font-mono text-xs text-[var(--muted)]">&middot;</span>
+            <span className="font-mono text-xs text-[var(--muted)]">Spring 2026</span>
+          </div>
         </div>
       </header>
 
-      {/* Schedule Section */}
-      <section className="relative px-4 md:px-8 py-8 md:py-12">
-        <div className="max-w-6xl mx-auto">
-          {/* Section header */}
-          <div className="flex items-center gap-3 md:gap-4 mb-6">
-            <div className="stripe-pattern w-6 h-6 md:w-8 md:h-8" />
-            <h2 className="font-display text-2xl md:text-3xl text-[var(--foreground)]">
-              FULL SCHEDULE
-            </h2>
-            <div className="flex-1 h-px bg-[var(--border)]" />
-            {schedule && (
-              <div className="font-mono text-xs text-[var(--muted)]">
-                {upcomingGames.length} upcoming
-              </div>
-            )}
+      <section className="px-4 md:px-8 py-4 md:py-6">
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <h2 className="font-display text-lg md:text-xl text-[var(--foreground)]">SCHEDULE</h2>
+              <span className="font-mono text-[10px] text-[var(--muted)] bg-[var(--border)] px-2 py-0.5 rounded-full">First Half</span>
+            </div>
           </div>
 
-          {/* Games list */}
           {loading ? (
-            <LoadingSkeleton />
+            <div className="space-y-1">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-16 bg-[var(--card-bg)] rounded animate-pulse" />
+              ))}
+            </div>
           ) : error ? (
             <div className="text-center py-12">
-              <div className="font-display text-xl text-red-500 mb-2">ERROR</div>
+              <div className="font-display text-xl text-red-600 mb-2">ERROR</div>
               <div className="font-mono text-sm text-[var(--muted)]">{error}</div>
             </div>
-          ) : schedule?.games.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="font-display text-xl text-[var(--muted)]">NO GAMES SCHEDULED</div>
-            </div>
           ) : (
-            <div className="space-y-2 md:space-y-3">
-              {schedule?.games.map((game, i) => (
-                <GameCard key={i} game={game} index={i} isNextGame={game === nextGame} />
+            <div className="bg-[var(--card-bg)] rounded-lg border border-[var(--border)] overflow-hidden">
+              {schedule?.games.map((game) => (
+                <GameRow
+                  key={`${game.date}-${game.opponent}`}
+                  game={game}
+                  index={schedule.games.indexOf(game)}
+                  isNext={game === nextGame}
+                />
               ))}
             </div>
           )}
 
-          {/* Footer */}
-          <footer className="mt-12 pt-6 border-t border-[var(--border)]">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-3">
-              <div className="font-mono text-xs text-[var(--muted)]">
-                Data from{' '}
-                <a
-                  href="https://www.nyurban.com/team-details/?team_id=910085"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[var(--accent)] hover:underline"
-                >
-                  NY Urban
-                </a>
-              </div>
-            </div>
-          </footer>
+          <div className="mt-4 text-center">
+            <span className="font-mono text-xs text-[var(--muted)]">More games coming soon...</span>
+          </div>
+
+          <div className="mt-8 pt-4 border-t border-[var(--border)] font-mono text-xs text-[var(--muted)] text-center">
+            Schedule, standings & waivers at{' '}
+            <a
+              href="https://www.nyurban.com/team-details/?team_id=738034"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              NY Urban
+            </a>
+          </div>
         </div>
       </section>
     </main>
