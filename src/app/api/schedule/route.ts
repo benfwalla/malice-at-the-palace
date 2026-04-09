@@ -36,24 +36,51 @@ const locationInfo: Record<string, { name: string; address: string; notes: strin
   },
 };
 
-function getNYDateParts(): { year: number; month: number; day: number } {
+// Get current time in NY as a Unix timestamp (ms)
+function getNowInNYMs(): number {
   const now = new Date();
-  const year = parseInt(now.toLocaleString('en-US', { timeZone: 'America/New_York', year: 'numeric' }));
-  const month = parseInt(now.toLocaleString('en-US', { timeZone: 'America/New_York', month: 'numeric' }));
-  const day = parseInt(now.toLocaleString('en-US', { timeZone: 'America/New_York', day: 'numeric' }));
-  return { year, month, day };
+  const nyStr = now.toLocaleString('en-US', { timeZone: 'America/New_York' });
+  return new Date(nyStr).getTime();
+}
+
+function getNYYear(): number {
+  return parseInt(new Date().toLocaleString('en-US', { timeZone: 'America/New_York', year: 'numeric' }));
+}
+
+// Parse "8:10pm" into { hours24, minutes }
+function parseTime(timeStr: string): { hours: number; minutes: number } | null {
+  const m = timeStr.match(/(\d{1,2}):(\d{2})(am|pm)/i);
+  if (!m) return null;
+  let hours = parseInt(m[1]);
+  const minutes = parseInt(m[2]);
+  const ampm = m[3].toLowerCase();
+  if (ampm === 'pm' && hours !== 12) hours += 12;
+  if (ampm === 'am' && hours === 12) hours = 0;
+  return { hours, minutes };
 }
 
 export async function GET() {
-  const nyDate = getNYDateParts();
-  const todayInNY = new Date(Date.UTC(nyDate.year, nyDate.month - 1, nyDate.day));
+  const year = getNYYear();
+  const nowMs = getNowInNYMs();
 
   const games: Game[] = scheduleData.map((game) => {
     const match = game.date.match(/(\w+)\s+(\d{1,2})\/(\d{1,2})/);
     const fullDate = match
-      ? new Date(Date.UTC(nyDate.year, parseInt(match[2]) - 1, parseInt(match[3])))
+      ? new Date(Date.UTC(year, parseInt(match[2]) - 1, parseInt(match[3])))
       : null;
-    const isUpcoming = fullDate ? fullDate >= todayInNY : false;
+
+    // Game is upcoming until 1 hour after its start time in NY
+    let isUpcoming = false;
+    if (fullDate) {
+      const parsed = parseTime(game.time);
+      const gameStartMs = new Date(
+        fullDate.getUTCFullYear(), fullDate.getUTCMonth(), fullDate.getUTCDate(),
+        parsed?.hours ?? 23, parsed?.minutes ?? 59
+      ).getTime();
+      const cutoffMs = gameStartMs + 60 * 60 * 1000;
+      isUpcoming = nowMs < cutoffMs;
+    }
+
     const loc = locationInfo[game.locationCode];
 
     return {
