@@ -10,12 +10,19 @@ export interface Game {
   time: string;
   opponent: string;
   isUpcoming: boolean;
+  isNoGame: boolean;
 }
 
 const scheduleData = [
   { date: 'Mon 04/13', locationCode: 'NT', time: '8:10pm', opponent: 'Euknicks' },
   { date: 'Wed 04/22', locationCode: 'W50', time: '7:00pm', opponent: 'Silk Road Merchants' },
   { date: 'Tue 04/28', locationCode: 'BS', time: '9:15pm', opponent: 'Aye Yoo' },
+  { date: 'Tue 05/05', locationCode: 'BEC', time: '7:10pm', opponent: 'Mud Hens' },
+  { date: 'Thu 05/14', locationCode: 'W50', time: '8:10pm', opponent: 'Lob City' },
+  { date: 'Thu 05/21', locationCode: 'HSG', time: '8:05pm', opponent: 'CIBC' },
+  { date: 'Mon 05/25', locationCode: '', time: '', opponent: 'No Game This Week' },
+  { date: 'Tue 06/02', locationCode: 'BS', time: '8:10pm', opponent: 'Ballerz' },
+  { date: 'Wed 06/10', locationCode: 'JR3', time: '9:10pm', opponent: 'Silk Road Merchants' },
 ];
 
 const locationInfo: Record<string, { name: string; address: string; notes: string }> = {
@@ -33,6 +40,21 @@ const locationInfo: Record<string, { name: string; address: string; notes: strin
     name: 'Baruch Simon',
     address: '330 East 20th St, New York, NY 10010',
     notes: 'Bet 1st & 2nd. Enter on 20th street. No Spectators.',
+  },
+  BEC: {
+    name: 'Beacon HS',
+    address: '522 W 44th St, New York, NY 10036',
+    notes: 'Bet 10th & 11th Ave. Do not arrive before 7:15. Bring I.D. No Spectators or Children.',
+  },
+  HSG: {
+    name: 'Graphics HS',
+    address: '439 W 49th St, New York, NY 10019',
+    notes: 'Bet 9th & 10th. Enter gym through doors to left of main entrance.',
+  },
+  JR3: {
+    name: 'Julia Richman (3rd floor Gym)',
+    address: '305 East 68th St, New York, NY 10065',
+    notes: 'At 2nd Ave. Enter via brown door on 68th off 2nd Ave. No entry before 7pm. No Bikes. No Spectators.',
   },
 };
 
@@ -64,6 +86,7 @@ export async function GET() {
   const nowMs = getNowInNYMs();
 
   const games: Game[] = scheduleData.map((game) => {
+    const isNoGame = !game.locationCode;
     const match = game.date.match(/(\w+)\s+(\d{1,2})\/(\d{1,2})/);
     const fullDate = match
       ? new Date(Date.UTC(year, parseInt(match[2]) - 1, parseInt(match[3])))
@@ -71,7 +94,7 @@ export async function GET() {
 
     // Game is upcoming until 1 hour after its start time in NY
     let isUpcoming = false;
-    if (fullDate) {
+    if (fullDate && !isNoGame) {
       const parsed = parseTime(game.time);
       const gameStartMs = new Date(
         fullDate.getUTCFullYear(), fullDate.getUTCMonth(), fullDate.getUTCDate(),
@@ -93,6 +116,7 @@ export async function GET() {
       time: game.time,
       opponent: game.opponent,
       isUpcoming,
+      isNoGame,
     };
   });
 

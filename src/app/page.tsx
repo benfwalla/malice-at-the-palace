@@ -13,6 +13,7 @@ interface Game {
   time: string;
   opponent: string;
   isUpcoming: boolean;
+  isNoGame: boolean;
 }
 
 interface ScheduleData {
@@ -124,6 +125,21 @@ function GameRow({ game, index, isNext }: { game: Game; index: number; isNext: b
   const dayNum = dateParts ? dateParts[3] : '';
   const monthName = MONTH_NAMES[monthNum] || '';
   const muted = isNext ? 'text-black/50' : 'text-[var(--muted)]';
+
+  if (game.isNoGame) {
+    return (
+      <div
+        className="game-row animate-slide-in px-3 py-2 md:px-5 md:py-3 flex items-center gap-3 md:gap-5 opacity-60"
+        style={{ animationDelay: `${index * 0.06}s` }}
+      >
+        <div className="text-center min-w-[48px] md:min-w-[56px]">
+          <div className="font-display text-2xl md:text-3xl leading-none">{dayNum}</div>
+          <div className={`font-mono text-[10px] md:text-xs uppercase text-[var(--muted)]`}>{monthName}</div>
+        </div>
+        <div className="font-body text-sm italic text-[var(--muted)]">No game this week</div>
+      </div>
+    );
+  }
 
   return (
     <div
