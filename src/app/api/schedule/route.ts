@@ -19,7 +19,7 @@ const scheduleData = [
   { date: 'Tue 04/28', locationCode: 'BS', time: '9:15pm', opponent: 'Aye Yoo' },
   { date: 'Tue 05/05', locationCode: 'BEC', time: '7:10pm', opponent: 'Mud Hens' },
   { date: 'Thu 05/14', locationCode: 'W50', time: '8:10pm', opponent: 'Lob City' },
-  { date: 'Thu 05/21', locationCode: 'HSG', time: '8:05pm', opponent: 'CIBC' },
+  { date: 'Thu 05/21', locationCode: 'JR2', time: '7:00pm', opponent: 'CIBC' },
   { date: 'Mon 05/25', locationCode: '', time: '', opponent: 'No Game This Week' },
   { date: 'Tue 06/02', locationCode: 'BS', time: '8:10pm', opponent: 'Ballerz' },
   { date: 'Wed 06/10', locationCode: 'JR3', time: '9:10pm', opponent: 'Silk Road Merchants' },
@@ -38,22 +38,22 @@ const locationInfo: Record<string, { name: string; address: string; notes: strin
   },
   BS: {
     name: 'Baruch Simon',
-    address: '330 East 20th St, New York, NY 10010',
-    notes: 'Bet 1st & 2nd. Enter on 20th street. No Spectators.',
+    address: '20th Street (bet 1st & 2nd), New York, NY 10010',
+    notes: 'Enter on 20th street. No Spectators.',
   },
   BEC: {
     name: 'Beacon HS',
     address: '522 W 44th St, New York, NY 10036',
     notes: 'Bet 10th & 11th Ave. Do not arrive before 7:15. Bring I.D. No Spectators or Children.',
   },
-  HSG: {
-    name: 'Graphics HS',
-    address: '439 W 49th St, New York, NY 10019',
-    notes: 'Bet 9th & 10th. Enter gym through doors to left of main entrance.',
+  JR2: {
+    name: 'Julia Richman (2nd floor Gym)',
+    address: '305 E 68th St, New York, NY 10065',
+    notes: 'At 2nd Ave. Enter on 68th through brown doors closest to 2nd Ave. No bikes. No Spectators.',
   },
   JR3: {
     name: 'Julia Richman (3rd floor Gym)',
-    address: '305 East 68th St, New York, NY 10065',
+    address: '305 E 68th St, New York, NY 10065',
     notes: 'At 2nd Ave. Enter via brown door on 68th off 2nd Ave. No entry before 7pm. No Bikes. No Spectators.',
   },
 };

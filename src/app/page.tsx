@@ -259,9 +259,14 @@ export default function Home() {
         </div>
 
         <div className="relative max-w-2xl mx-auto px-4 md:px-8 pt-16 pb-12 md:pt-24 md:pb-16">
-          <div className="font-mono text-[10px] md:text-xs text-[var(--muted)] tracking-[0.2em] uppercase mb-1">
+          <a
+            href="https://www.nyurban.com/team-details/?team_id=738034"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-mono text-[10px] md:text-xs text-[var(--muted)] tracking-[0.2em] uppercase mb-1 inline-block underline"
+          >
             NY Urban League
-          </div>
+          </a>
           <h1 className="font-display text-5xl md:text-7xl text-[var(--foreground)] leading-[0.9]">
             MALICE
           </h1>
@@ -282,7 +287,6 @@ export default function Home() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               <h2 className="font-display text-lg md:text-xl text-[var(--foreground)]">SCHEDULE</h2>
-              <span className="font-mono text-[10px] text-[var(--muted)] bg-[var(--border)] px-2 py-0.5 rounded-full">First Half</span>
             </div>
           </div>
 
@@ -309,10 +313,6 @@ export default function Home() {
               ))}
             </div>
           )}
-
-          <div className="mt-4 text-center">
-            <span className="font-mono text-xs text-[var(--muted)]">More games coming soon...</span>
-          </div>
 
           <div className="mt-8 pt-4 border-t border-[var(--border)] font-mono text-xs text-[var(--muted)] text-center">
             Schedule, standings & waivers at{' '}
