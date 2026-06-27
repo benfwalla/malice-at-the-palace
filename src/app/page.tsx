@@ -277,7 +277,7 @@ export default function Home() {
             <div className="w-3 h-3 rounded-full bg-black border-2 border-[var(--border-dark)]" />
             <span className="font-mono text-xs text-[var(--muted)]">Black Team</span>
             <span className="font-mono text-xs text-[var(--muted)]">&middot;</span>
-            <span className="font-mono text-xs text-[var(--muted)]">Spring 2026</span>
+            <span className="font-mono text-xs text-[var(--muted)]">Summer 2026</span>
           </div>
         </div>
       </header>
