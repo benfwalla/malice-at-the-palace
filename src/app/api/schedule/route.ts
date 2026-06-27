@@ -14,47 +14,58 @@ export interface Game {
 }
 
 const scheduleData = [
-  { date: 'Mon 04/13', locationCode: 'NT', time: '8:10pm', opponent: 'Euknicks' },
-  { date: 'Wed 04/22', locationCode: 'W50', time: '7:00pm', opponent: 'Silk Road Merchants' },
-  { date: 'Tue 04/28', locationCode: 'BS', time: '9:15pm', opponent: 'Aye Yoo' },
-  { date: 'Tue 05/05', locationCode: 'BEC', time: '7:10pm', opponent: 'Mud Hens' },
-  { date: 'Thu 05/14', locationCode: 'W50', time: '8:10pm', opponent: 'Lob City' },
-  { date: 'Thu 05/21', locationCode: 'JR2', time: '7:00pm', opponent: 'CIBC' },
-  { date: 'Mon 05/25', locationCode: '', time: '', opponent: 'No Game This Week' },
-  { date: 'Tue 06/02', locationCode: 'BS', time: '8:10pm', opponent: 'Ballerz' },
-  { date: 'Wed 06/10', locationCode: 'JR3', time: '9:10pm', opponent: 'Silk Road Merchants' },
+  { date: 'Tue 06/30', locationCode: 'RS', time: '8:10pm', opponent: 'Bison NYC' },
+  { date: 'Mon 07/06', locationCode: '', time: '', opponent: 'No Game This Week' },
+  { date: 'Wed 07/15', locationCode: 'W50', time: '8:10pm', opponent: 'Giants' },
 ];
 
-const locationInfo: Record<string, { name: string; address: string; notes: string }> = {
+// Persistent location lookup, accumulated across seasons. This is NOT cleared when
+// the schedule changes — only `scheduleData` above gets swapped each new season.
+// The key is the alias NY Urban uses on their website (the code shown in the
+// Location column on the schedule page), mapping to the full name, address, and
+// gym-specific notes. `alias` mirrors the key for explicitness.
+const locationInfo: Record<string, { alias: string; name: string; address: string; notes: string }> = {
   NT: {
+    alias: 'NT',
     name: 'Norman Thomas',
     address: '111 E 33rd St, New York, NY 10016',
     notes: 'Bet Park & Lex. Gym is up on the 9th floor. No Bikes! No Spectators.',
   },
   W50: {
+    alias: 'W50',
     name: 'W50th Street Campus',
     address: '525 W 50th St, New York, NY 10019',
     notes: 'B/w 10th/11th. Main entrance, middle of the block, down a few steps. Red doors. Gym is on the 5th floor. No spectators.',
   },
   BS: {
+    alias: 'BS',
     name: 'Baruch Simon',
     address: '20th Street (bet 1st & 2nd), New York, NY 10010',
     notes: 'Enter on 20th street. No Spectators.',
   },
   BEC: {
+    alias: 'BEC',
     name: 'Beacon HS',
     address: '522 W 44th St, New York, NY 10036',
     notes: 'Bet 10th & 11th Ave. Do not arrive before 7:15. Bring I.D. No Spectators or Children.',
   },
   JR2: {
+    alias: 'JR2',
     name: 'Julia Richman (2nd floor Gym)',
     address: '305 E 68th St, New York, NY 10065',
     notes: 'At 2nd Ave. Enter on 68th through brown doors closest to 2nd Ave. No bikes. No Spectators.',
   },
   JR3: {
+    alias: 'JR3',
     name: 'Julia Richman (3rd floor Gym)',
     address: '305 E 68th St, New York, NY 10065',
     notes: 'At 2nd Ave. Enter via brown door on 68th off 2nd Ave. No entry before 7pm. No Bikes. No Spectators.',
+  },
+  RS: {
+    alias: 'RS',
+    name: 'Robert Simon',
+    address: 'E 5th St & Ave B, New York, NY 10009',
+    notes: 'Must enter and exit via Red Door on 5th St & Ave B. NO SPECTATORS!',
   },
 };
 
