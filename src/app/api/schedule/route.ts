@@ -61,8 +61,12 @@ const locationInfo: Record<string, { alias: string; name: string; address: strin
     address: '305 E 68th St, New York, NY 10065',
     notes: 'At 2nd Ave. Enter via brown door on 68th off 2nd Ave. No entry before 7pm. No Bikes. No Spectators.',
   },
-  // RS (Robert Simon) — used by the Summer 2026 schedule (Tue 06/30 vs Bison NYC).
-  // TODO: address + notes pending from Ben; full name confirmed as "Robert Simon".
+  RS: {
+    alias: 'RS',
+    name: 'Robert Simon',
+    address: 'E 5th St & Ave B, New York, NY 10009',
+    notes: 'Must enter and exit via Red Door on 5th St & Ave B. NO SPECTATORS!',
+  },
 };
 
 // Get current time in NY as a Unix timestamp (ms)
