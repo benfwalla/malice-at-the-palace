@@ -251,11 +251,11 @@ export default function Home() {
             src="/mural.jpg"
             alt="Malice at the Palace"
             fill
-            className="object-cover opacity-10"
+            className="object-cover opacity-[0.06]"
             style={{ objectPosition: '50% 40%' }}
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent via-30% to-[var(--background)] to-72%" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[var(--background)]" />
         </div>
 
         <div className="relative max-w-2xl mx-auto px-4 md:px-8 pt-16 pb-12 md:pt-24 md:pb-16">
