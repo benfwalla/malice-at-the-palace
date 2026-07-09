@@ -17,6 +17,8 @@ const scheduleData = [
   { date: 'Tue 06/30', locationCode: 'RS', time: '8:10pm', opponent: 'Bison NYC' },
   { date: 'Mon 07/06', locationCode: '', time: '', opponent: 'No Game This Week' },
   { date: 'Wed 07/15', locationCode: 'W50', time: '8:10pm', opponent: 'Giants' },
+  { date: 'Mon 07/20', locationCode: 'W50', time: '7:00pm', opponent: 'Least Most UnBest' },
+  { date: 'Mon 07/27', locationCode: '', time: '', opponent: 'No Game This Week' },
 ];
 
 // Persistent location lookup, accumulated across seasons. This is NOT cleared when
