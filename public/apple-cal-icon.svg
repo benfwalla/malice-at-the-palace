@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <clipPath id="squircle">
+      <rect x="16" y="16" width="168" height="168" rx="38" ry="38"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#squircle)">
+    <rect x="16" y="16" width="168" height="168" fill="#FFFFFF"/>
+    <rect x="16" y="16" width="168" height="54" fill="#EB4B3B"/>
+    <text x="100" y="55" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="1" fill="#FFFFFF">SAT</text>
+    <text x="100" y="158" text-anchor="middle" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="96" font-weight="300" fill="#1A1A1A">17</text>
+  </g>
+  <rect x="16.5" y="16.5" width="167" height="167" rx="37.5" ry="37.5" fill="none" stroke="#E2E2E2" stroke-width="1"/>
+</svg>

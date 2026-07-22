@@ -19,6 +19,13 @@ const scheduleData = [
   { date: 'Wed 07/15', locationCode: 'W50', time: '8:10pm', opponent: 'Giants' },
   { date: 'Mon 07/20', locationCode: 'W50', time: '7:00pm', opponent: 'Least Most UnBest' },
   { date: 'Mon 07/27', locationCode: '', time: '', opponent: 'No Game This Week' },
+  { date: 'Thu 08/06', locationCode: 'BEC', time: '8:45pm', opponent: 'Schvitzers' },
+  { date: 'Wed 08/12', locationCode: 'BRN', time: '8:10pm', opponent: 'Winning Aint Easy' },
+  { date: 'Mon 08/17', locationCode: '', time: '', opponent: 'No Game This Week' },
+  { date: 'Mon 08/24', locationCode: '', time: '', opponent: 'No Game This Week' },
+  { date: 'Tue 09/01', locationCode: 'RSMA', time: '8:10pm', opponent: 'Lob City' },
+  { date: 'Thu 09/10', locationCode: 'JR2', time: '7:00pm', opponent: 'Big College Jacksonville' },
+  { date: 'Tue 09/15', locationCode: 'BEC', time: '8:40pm', opponent: 'Giants' },
 ];
 
 // Persistent location lookup, accumulated across seasons. This is NOT cleared when
@@ -49,7 +56,19 @@ const locationInfo: Record<string, { alias: string; name: string; address: strin
     alias: 'BEC',
     name: 'Beacon HS',
     address: '522 W 44th St, New York, NY 10036',
-    notes: 'Bet 10th & 11th Ave. Do not arrive before 7:15. Bring I.D. No Spectators or Children.',
+    notes: 'Bet 10th & 11th Ave. Do not arrive at school before 6:15. Bring I.D. No Spectators or Children.',
+  },
+  BRN: {
+    alias: 'BRN',
+    name: 'Brandeis H.S.',
+    address: '145 W 84th St, New York, NY 10024',
+    notes: 'Players may not enter the school before 8 PM. No Spectators. No Bikes. No Children!',
+  },
+  RSMA: {
+    alias: 'RSMA',
+    name: 'Riverside School Makers Artist',
+    address: '300 W 61st St, New York, NY 10023',
+    notes: 'Gym is on 2nd Floor. NO SPECTATORS.',
   },
   JR2: {
     alias: 'JR2',
