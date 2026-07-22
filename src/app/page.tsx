@@ -49,38 +49,109 @@ function getAppleMapsUrl(address: string): string {
   return `https://maps.apple.com/?q=${encodeURIComponent(address)}`;
 }
 
-function getGoogleCalendarUrl(game: Game): string {
-  if (!game.fullDate) return '#';
+type CalendarProvider = 'google' | 'apple';
+type MapProvider = 'google' | 'apple';
+
+// Shared time math for calendar links: returns start/end as {year, month, day, hours, minutes}
+// with a 1h30m default duration, or null when the game has no parseable date/time.
+function getGameTimes(game: Game) {
+  if (!game.fullDate) return null;
+  const timeMatch = game.time.match(/(\d{1,2}):(\d{2})(am|pm)/i);
+  if (!timeMatch) return null;
 
   const gameDate = new Date(game.fullDate);
-  const timeMatch = game.time.match(/(\d{1,2}):(\d{2})(am|pm)/i);
-  if (!timeMatch) return '#';
-
   let hours = parseInt(timeMatch[1]);
   const minutes = parseInt(timeMatch[2]);
   const ampm = timeMatch[3].toLowerCase();
-
   if (ampm === 'pm' && hours !== 12) hours += 12;
   if (ampm === 'am' && hours === 12) hours = 0;
 
   const year = gameDate.getUTCFullYear();
-  const month = String(gameDate.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(gameDate.getUTCDate()).padStart(2, '0');
-  const h = String(hours).padStart(2, '0');
-  const m = String(minutes).padStart(2, '0');
+  const month = gameDate.getUTCMonth() + 1;
+  const day = gameDate.getUTCDate();
 
-  const startStr = `${year}${month}${day}T${h}${m}00`;
-  const endHours = hours + 1;
-  const endMinutes = minutes + 30;
-  const endH = String(endMinutes >= 60 ? endHours + 1 : endHours).padStart(2, '0');
-  const endM = String(endMinutes >= 60 ? endMinutes - 60 : endMinutes).padStart(2, '0');
-  const endStr = `${year}${month}${day}T${endH}${endM}00`;
+  // 1h30m duration, rolling minutes/hours over cleanly
+  let endHours = hours + 1;
+  let endMinutes = minutes + 30;
+  if (endMinutes >= 60) {
+    endMinutes -= 60;
+    endHours += 1;
+  }
+
+  return { year, month, day, hours, minutes, endHours, endMinutes };
+}
+
+function pad(n: number): string {
+  return String(n).padStart(2, '0');
+}
+
+function getGoogleCalendarUrl(game: Game): string {
+  const t = getGameTimes(game);
+  if (!t) return '#';
+
+  const startStr = `${t.year}${pad(t.month)}${pad(t.day)}T${pad(t.hours)}${pad(t.minutes)}00`;
+  const endStr = `${t.year}${pad(t.month)}${pad(t.day)}T${pad(t.endHours)}${pad(t.endMinutes)}00`;
 
   const title = `Malice at the Palace vs ${game.opponent}`;
   const location = game.locationAddress || game.location;
   const details = `NY Urban League Basketball\n${game.location}${game.locationNotes ? '\n' + game.locationNotes : ''}`;
 
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startStr}/${endStr}&ctz=America/New_York&location=${encodeURIComponent(location)}&details=${encodeURIComponent(details)}`;
+}
+
+// Escape a value for an ICS text field per RFC 5545 (backslash, semicolon, comma, newlines).
+function escapeICS(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+}
+
+// Apple Calendar has no add-event URL scheme, so we hand it an .ics file as a data URI.
+// Times are anchored to America/New_York via a minimal VTIMEZONE block so the event lands
+// at the right wall-clock time regardless of the device's timezone.
+function getAppleCalendarUrl(game: Game): string {
+  const t = getGameTimes(game);
+  if (!t) return '#';
+
+  const dt = (h: number, m: number) => `${t.year}${pad(t.month)}${pad(t.day)}T${pad(h)}${pad(m)}00`;
+  const title = `Malice at the Palace vs ${game.opponent}`;
+  const location = game.locationAddress || game.location;
+  const details = `NY Urban League Basketball\n${game.location}${game.locationNotes ? '\n' + game.locationNotes : ''}`;
+  const uid = `${t.year}${pad(t.month)}${pad(t.day)}-${game.opponent.replace(/\s+/g, '')}@malice-at-the-palace`;
+
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Malice at the Palace//Schedule//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VTIMEZONE',
+    'TZID:America/New_York',
+    'BEGIN:DAYLIGHT',
+    'TZOFFSETFROM:-0500',
+    'TZOFFSETTO:-0400',
+    'TZNAME:EDT',
+    'DTSTART:19700308T020000',
+    'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU',
+    'END:DAYLIGHT',
+    'BEGIN:STANDARD',
+    'TZOFFSETFROM:-0400',
+    'TZOFFSETTO:-0500',
+    'TZNAME:EST',
+    'DTSTART:19701101T020000',
+    'RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU',
+    'END:STANDARD',
+    'END:VTIMEZONE',
+    'BEGIN:VEVENT',
+    `UID:${uid}`,
+    `DTSTART;TZID=America/New_York:${dt(t.hours, t.minutes)}`,
+    `DTEND;TZID=America/New_York:${dt(t.endHours, t.endMinutes)}`,
+    `SUMMARY:${escapeICS(title)}`,
+    `LOCATION:${escapeICS(location)}`,
+    `DESCRIPTION:${escapeICS(details)}`,
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ];
+
+  return `data:text/calendar;charset=utf-8,${encodeURIComponent(lines.join('\r\n'))}`;
 }
 
 function ChevronDown({ className }: { className?: string }) {
@@ -115,7 +186,91 @@ function MapLink({ href, isNext, children }: { href: string; isNext: boolean; ch
   );
 }
 
-function GameRow({ game, index, isNext }: { game: Game; index: number; isNext: boolean }) {
+function GearIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  );
+}
+
+const CAL_KEY = 'matp-calendar-pref';
+const MAP_KEY = 'matp-map-pref';
+
+function SettingsMenu({
+  calPref,
+  mapPref,
+  onCalChange,
+  onMapChange,
+}: {
+  calPref: CalendarProvider;
+  mapPref: MapProvider;
+  onCalChange: (v: CalendarProvider) => void;
+  onMapChange: (v: MapProvider) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+
+  const optionClass = (active: boolean) =>
+    `flex-1 px-3 py-1.5 rounded-md font-mono text-xs transition-colors cursor-pointer ${
+      active
+        ? 'bg-[var(--foreground)] text-[var(--background)]'
+        : 'text-[var(--muted)] hover:text-[var(--foreground)]'
+    }`;
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="p-2 rounded-md text-[var(--muted)] hover:text-[var(--foreground)] transition-colors cursor-pointer"
+        aria-label="Settings"
+        aria-expanded={open}
+      >
+        <GearIcon />
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 mt-2 w-64 z-20 bg-[var(--card-bg)] border border-[var(--border)] rounded-lg shadow-lg p-4">
+            <div className="font-display text-sm mb-3 text-[var(--foreground)]">PREFERENCES</div>
+
+            <div className="mb-4">
+              <div className="font-mono text-[10px] uppercase tracking-wider text-[var(--muted)] mb-1.5">Calendar</div>
+              <div className="flex gap-1 p-1 bg-[var(--border)]/40 rounded-lg">
+                <button className={optionClass(calPref === 'google')} onClick={() => onCalChange('google')}>Google</button>
+                <button className={optionClass(calPref === 'apple')} onClick={() => onCalChange('apple')}>Apple</button>
+              </div>
+            </div>
+
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-wider text-[var(--muted)] mb-1.5">Maps</div>
+              <div className="flex gap-1 p-1 bg-[var(--border)]/40 rounded-lg">
+                <button className={optionClass(mapPref === 'google')} onClick={() => onMapChange('google')}>Google</button>
+                <button className={optionClass(mapPref === 'apple')} onClick={() => onMapChange('apple')}>Apple</button>
+              </div>
+            </div>
+
+            <div className="mt-3 pt-3 border-t border-[var(--border)] font-mono text-[10px] text-[var(--muted)]">
+              Saved on this device.
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function GameRow({ game, index, isNext, calPref, mapPref }: { game: Game; index: number; isNext: boolean; calPref: CalendarProvider; mapPref: MapProvider }) {
   const [expanded, setExpanded] = useState(isNext);
 
   const relativeTime = getRelativeTime(game.fullDate);
@@ -173,16 +328,28 @@ function GameRow({ game, index, isNext }: { game: Game; index: number; isNext: b
           </div>
         )}
 
-        <a
-          href={getGoogleCalendarUrl(game)}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          className="shrink-0 p-1.5 rounded-md"
-          title="Add to Google Calendar"
-        >
-          <Image src="/gcal-icon.svg" alt="Add to Google Calendar" width={22} height={22} />
-        </a>
+        {calPref === 'apple' ? (
+          <a
+            href={getAppleCalendarUrl(game)}
+            download={`malice-vs-${game.opponent.replace(/\s+/g, '-')}.ics`}
+            onClick={(e) => e.stopPropagation()}
+            className="shrink-0 p-1.5 rounded-md"
+            title="Add to Apple Calendar"
+          >
+            <Image src="/apple-cal-icon.svg" alt="Add to Apple Calendar" width={22} height={22} />
+          </a>
+        ) : (
+          <a
+            href={getGoogleCalendarUrl(game)}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="shrink-0 p-1.5 rounded-md"
+            title="Add to Google Calendar"
+          >
+            <Image src="/gcal-icon.svg" alt="Add to Google Calendar" width={22} height={22} />
+          </a>
+        )}
 
         <ChevronDown className={`chevron shrink-0 ${expanded ? 'open' : ''} ${isNext ? 'text-black/40' : 'text-[var(--muted)]'}`} />
       </button>
@@ -208,8 +375,11 @@ function GameRow({ game, index, isNext }: { game: Game; index: number; isNext: b
 
             {game.locationAddress && (
               <div className="ml-[22px] flex flex-wrap gap-2">
-                <MapLink href={getGoogleMapsUrl(game.locationAddress)} isNext={isNext}>Google Maps</MapLink>
-                <MapLink href={getAppleMapsUrl(game.locationAddress)} isNext={isNext}>Apple Maps</MapLink>
+                {mapPref === 'apple' ? (
+                  <MapLink href={getAppleMapsUrl(game.locationAddress)} isNext={isNext}>Apple Maps</MapLink>
+                ) : (
+                  <MapLink href={getGoogleMapsUrl(game.locationAddress)} isNext={isNext}>Google Maps</MapLink>
+                )}
               </div>
             )}
           </div>
@@ -223,6 +393,25 @@ export default function Home() {
   const [schedule, setSchedule] = useState<ScheduleData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [calPref, setCalPref] = useState<CalendarProvider>('google');
+  const [mapPref, setMapPref] = useState<MapProvider>('google');
+
+  // Load saved preferences from this device (falls back to Google defaults).
+  useEffect(() => {
+    const savedCal = localStorage.getItem(CAL_KEY);
+    if (savedCal === 'apple' || savedCal === 'google') setCalPref(savedCal);
+    const savedMap = localStorage.getItem(MAP_KEY);
+    if (savedMap === 'apple' || savedMap === 'google') setMapPref(savedMap);
+  }, []);
+
+  const updateCalPref = (v: CalendarProvider) => {
+    setCalPref(v);
+    localStorage.setItem(CAL_KEY, v);
+  };
+  const updateMapPref = (v: MapProvider) => {
+    setMapPref(v);
+    localStorage.setItem(MAP_KEY, v);
+  };
 
   useEffect(() => {
     async function fetchSchedule() {
@@ -245,6 +434,15 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[var(--background)]">
+      <div className="fixed top-3 right-3 md:top-4 md:right-4 z-30">
+        <SettingsMenu
+          calPref={calPref}
+          mapPref={mapPref}
+          onCalChange={updateCalPref}
+          onMapChange={updateMapPref}
+        />
+      </div>
+
       <header className="relative overflow-hidden">
         <div className="absolute inset-0">
           <Image
@@ -306,6 +504,8 @@ export default function Home() {
                   game={game}
                   index={schedule.games.indexOf(game)}
                   isNext={game === nextGame}
+                  calPref={calPref}
+                  mapPref={mapPref}
                 />
               ))}
             </div>

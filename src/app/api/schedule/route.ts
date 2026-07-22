@@ -61,13 +61,13 @@ const locationInfo: Record<string, { alias: string; name: string; address: strin
   BRN: {
     alias: 'BRN',
     name: 'Brandeis H.S.',
-    address: 'W 84th St (bet Columbus & Amsterdam), New York, NY',
+    address: '145 W 84th St, New York, NY 10024',
     notes: 'Players may not enter the school before 8 PM. No Spectators. No Bikes. No Children!',
   },
   RSMA: {
     alias: 'RSMA',
     name: 'Riverside School Makers Artist',
-    address: 'W 61st St (btw West End Ave & Freedom Pl S), New York, NY',
+    address: '300 W 61st St, New York, NY 10023',
     notes: 'Gym is on 2nd Floor. NO SPECTATORS.',
   },
   JR2: {
