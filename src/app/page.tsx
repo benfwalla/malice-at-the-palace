@@ -99,59 +99,21 @@ function getGoogleCalendarUrl(game: Game): string {
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startStr}/${endStr}&ctz=America/New_York&location=${encodeURIComponent(location)}&details=${encodeURIComponent(details)}`;
 }
 
-// Escape a value for an ICS text field per RFC 5545 (backslash, semicolon, comma, newlines).
-function escapeICS(value: string): string {
-  return value.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
-}
-
-// Apple Calendar has no add-event URL scheme, so we hand it an .ics file as a data URI.
-// Times are anchored to America/New_York via a minimal VTIMEZONE block so the event lands
-// at the right wall-clock time regardless of the device's timezone.
+// Apple Calendar has no add-event URL scheme, so we link to a server route that
+// returns a real .ics file with a text/calendar content-type. A hosted URL is opened
+// reliably everywhere (Safari, in-app webviews, Android, desktop), unlike a `data:`
+// URI which silently fails inside in-app browsers and some non-Safari browsers.
 function getAppleCalendarUrl(game: Game): string {
-  const t = getGameTimes(game);
-  if (!t) return '#';
-
-  const dt = (h: number, m: number) => `${t.year}${pad(t.month)}${pad(t.day)}T${pad(h)}${pad(m)}00`;
-  const title = `Malice at the Palace vs ${game.opponent}`;
-  const location = game.locationAddress || game.location;
-  const details = `NY Urban League Basketball\n${game.location}${game.locationNotes ? '\n' + game.locationNotes : ''}`;
-  const uid = `${t.year}${pad(t.month)}${pad(t.day)}-${game.opponent.replace(/\s+/g, '')}@malice-at-the-palace`;
-
-  const lines = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//Malice at the Palace//Schedule//EN',
-    'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
-    'BEGIN:VTIMEZONE',
-    'TZID:America/New_York',
-    'BEGIN:DAYLIGHT',
-    'TZOFFSETFROM:-0500',
-    'TZOFFSETTO:-0400',
-    'TZNAME:EDT',
-    'DTSTART:19700308T020000',
-    'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU',
-    'END:DAYLIGHT',
-    'BEGIN:STANDARD',
-    'TZOFFSETFROM:-0400',
-    'TZOFFSETTO:-0500',
-    'TZNAME:EST',
-    'DTSTART:19701101T020000',
-    'RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU',
-    'END:STANDARD',
-    'END:VTIMEZONE',
-    'BEGIN:VEVENT',
-    `UID:${uid}`,
-    `DTSTART;TZID=America/New_York:${dt(t.hours, t.minutes)}`,
-    `DTEND;TZID=America/New_York:${dt(t.endHours, t.endMinutes)}`,
-    `SUMMARY:${escapeICS(title)}`,
-    `LOCATION:${escapeICS(location)}`,
-    `DESCRIPTION:${escapeICS(details)}`,
-    'END:VEVENT',
-    'END:VCALENDAR',
-  ];
-
-  return `data:text/calendar;charset=utf-8,${encodeURIComponent(lines.join('\r\n'))}`;
+  if (!getGameTimes(game)) return '#';
+  const params = new URLSearchParams({
+    opponent: game.opponent,
+    date: game.fullDate ?? '',
+    time: game.time,
+    location: game.location,
+    address: game.locationAddress ?? '',
+    notes: game.locationNotes ?? '',
+  });
+  return `/api/calendar?${params.toString()}`;
 }
 
 function ChevronDown({ className }: { className?: string }) {
@@ -331,7 +293,6 @@ function GameRow({ game, index, isNext, calPref, mapPref }: { game: Game; index:
         {calPref === 'apple' ? (
           <a
             href={getAppleCalendarUrl(game)}
-            download={`malice-vs-${game.opponent.replace(/\s+/g, '-')}.ics`}
             onClick={(e) => e.stopPropagation()}
             className="shrink-0 p-1.5 rounded-md"
             title="Add to Apple Calendar"
