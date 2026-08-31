@@ -23,7 +23,7 @@ const scheduleData = [
   { date: 'Wed 08/12', locationCode: 'BRN', time: '8:10pm', opponent: 'Winning Aint Easy' },
   { date: 'Mon 08/17', locationCode: '', time: '', opponent: 'No Game This Week' },
   { date: 'Mon 08/24', locationCode: '', time: '', opponent: 'No Game This Week' },
-  { date: 'Tue 09/01', locationCode: 'RSMA', time: '8:10pm', opponent: 'Lob City' },
+  { date: 'Tue 09/01', locationCode: 'BEC', time: '7:40pm', opponent: 'Lob City' },
   { date: 'Thu 09/10', locationCode: 'JR2', time: '7:00pm', opponent: 'Big College Jacksonville' },
   { date: 'Tue 09/15', locationCode: 'BEC', time: '8:40pm', opponent: 'Giants' },
 ];
