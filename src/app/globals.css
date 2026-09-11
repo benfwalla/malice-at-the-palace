@@ -9,6 +9,10 @@
   --border: #e0e0e0;
   --border-dark: #cccccc;
   --next-game-bg: #e8e8e8;
+  --win: #1c7c3f;
+  --win-bg: #e6f4ea;
+  --loss: #b3261e;
+  --loss-bg: #fbeae9;
 }
 
 @theme inline {

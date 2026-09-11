@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx next *)"
+      "Bash(npx next *)",
+      "Bash(curl -s --location 'https://www.nyurban.com/team-details/?team_id=738034' --header 'cookie: PHPSESSID=gjbtf9g0mrav2to169mct22nd6; PHPSESSID=7grgkcfosv2g8ot86s7ndo79n6' -o /tmp/nyurban_team.html)",
+      "Read(//tmp/**)"
     ]
   }
 }
