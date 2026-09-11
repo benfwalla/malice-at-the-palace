@@ -21,7 +21,6 @@ export async function GET(req: NextRequest) {
   const location = sp.get('location') || '';
   const address = sp.get('address') || '';
   const notes = sp.get('notes') || '';
-  const scheduleNote = sp.get('scheduleNote') || '';
 
   if (!dateISO) return new NextResponse('Missing date', { status: 400 });
   const parsedDate = new Date(dateISO);
@@ -54,7 +53,7 @@ export async function GET(req: NextRequest) {
 
   const title = `Malice at the Palace vs ${opponent}`;
   const loc = address || location;
-  const details = `NY Urban League Basketball\n${location}${notes ? '\n' + notes : ''}${scheduleNote ? '\n' + scheduleNote : ''}`;
+  const details = `NY Urban League Basketball\n${location}${notes ? '\n' + notes : ''}`;
   const uid = `${year}${pad(month)}${pad(day)}-${opponent.replace(/\s+/g, '')}@malice-at-the-palace`;
 
   const lines = [

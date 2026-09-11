@@ -12,29 +12,13 @@ interface Game {
   locationNotes: string;
   time: string;
   opponent: string;
-  scheduleNote: string;
-  result: string;
-  outcome: 'W' | 'L' | null;
-  scoreFor: number | null;
-  scoreAgainst: number | null;
   isUpcoming: boolean;
   isNoGame: boolean;
 }
 
-interface Standing {
-  team: string;
-  wins: number;
-  losses: number;
-  percent: string;
-  isOurTeam: boolean;
-}
-
 interface ScheduleData {
   games: Game[];
-  standings: Standing[];
   teamId: string;
-  teamName: string;
-  sourceUrl: string;
   fetchedAt: string;
 }
 
@@ -55,12 +39,6 @@ function getRelativeTime(dateStr: string | null): string | null {
   if (diffDays === 1) return 'TOMORROW';
   if (diffDays < 7) return `IN ${diffDays} DAYS`;
   return null;
-}
-
-function ordinal(n: number): string {
-  const s = ['th', 'st', 'nd', 'rd'];
-  const v = n % 100;
-  return s[(v - 20) % 10] || s[v] || s[0];
 }
 
 function getGoogleMapsUrl(address: string): string {
@@ -116,7 +94,7 @@ function getGoogleCalendarUrl(game: Game): string {
 
   const title = `Malice at the Palace vs ${game.opponent}`;
   const location = game.locationAddress || game.location;
-  const details = `NY Urban League Basketball\n${game.location}${game.locationNotes ? '\n' + game.locationNotes : ''}${game.scheduleNote ? '\n' + game.scheduleNote : ''}`;
+  const details = `NY Urban League Basketball\n${game.location}${game.locationNotes ? '\n' + game.locationNotes : ''}`;
 
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startStr}/${endStr}&ctz=America/New_York&location=${encodeURIComponent(location)}&details=${encodeURIComponent(details)}`;
 }
@@ -134,7 +112,6 @@ function getAppleCalendarUrl(game: Game): string {
     location: game.location,
     address: game.locationAddress ?? '',
     notes: game.locationNotes ?? '',
-    scheduleNote: game.scheduleNote ?? '',
   });
   return `/api/calendar?${params.toString()}`;
 }
@@ -255,30 +232,6 @@ function SettingsMenu({
   );
 }
 
-function ScoreBadge({ game, compact }: { game: Game; compact?: boolean }) {
-  if (!game.outcome) return null;
-  const isWin = game.outcome === 'W';
-  const hasScore = game.scoreFor != null && game.scoreAgainst != null;
-  const scoreText = hasScore
-    ? `${game.scoreFor}–${game.scoreAgainst}`
-    : game.result.replace(/^[WL]\s*/i, '') || (isWin ? 'WIN' : 'LOSS');
-
-  return (
-    <div
-      className="inline-flex items-center gap-1.5 rounded-md font-mono font-bold whitespace-nowrap"
-      style={{
-        color: isWin ? 'var(--win)' : 'var(--loss)',
-        background: isWin ? 'var(--win-bg)' : 'var(--loss-bg)',
-        padding: compact ? '2px 8px' : '4px 10px',
-        fontSize: compact ? '12px' : '14px',
-      }}
-    >
-      <span className="font-display tracking-wide">{game.outcome}</span>
-      <span>{scoreText}</span>
-    </div>
-  );
-}
-
 function GameRow({ game, index, isNext, calPref, mapPref }: { game: Game; index: number; isNext: boolean; calPref: CalendarProvider; mapPref: MapProvider }) {
   const [expanded, setExpanded] = useState(isNext);
 
@@ -331,15 +284,11 @@ function GameRow({ game, index, isNext, calPref, mapPref }: { game: Game; index:
           </div>
         </div>
 
-        {game.outcome ? (
-          <ScoreBadge game={game} />
-        ) : (
-          <>
-            {isNext && relativeTime && (
-              <div className="hidden md:block px-3 py-1 bg-black/10 rounded-full font-mono text-xs text-black/60">
-                {relativeTime}
-              </div>
-            )}
+        {isNext && relativeTime && (
+          <div className="hidden md:block px-3 py-1 bg-black/10 rounded-full font-mono text-xs text-black/60">
+            {relativeTime}
+          </div>
+        )}
 
         {calPref === 'apple' ? (
           <a
@@ -362,8 +311,6 @@ function GameRow({ game, index, isNext, calPref, mapPref }: { game: Game; index:
             <Image src="/gcal-icon.svg" alt="Add to Google Calendar" width={22} height={22} />
           </a>
         )}
-          </>
-        )}
 
         <ChevronDown className={`chevron shrink-0 ${expanded ? 'open' : ''} ${isNext ? 'text-black/40' : 'text-[var(--muted)]'}`} />
       </button>
@@ -375,12 +322,6 @@ function GameRow({ game, index, isNext, calPref, mapPref }: { game: Game; index:
               <span className={`text-sm font-body ${isNext ? 'text-black/40' : 'text-[var(--muted)]'}`}>vs </span>
               <span className="font-display text-lg">{game.opponent}</span>
             </div>
-
-            {game.scheduleNote && (
-              <div className={`mb-3 font-mono text-xs italic ${isNext ? 'text-black/60' : 'text-[var(--muted)]'}`}>
-                {game.scheduleNote}
-              </div>
-            )}
 
             <div className="flex items-start gap-2 mb-2">
               <MapPinIcon className={`shrink-0 mt-0.5 ${isNext ? 'text-black/70' : 'text-[var(--muted)]'}`} />
@@ -452,10 +393,6 @@ export default function Home() {
   const upcomingGames = schedule?.games.filter((g) => g.isUpcoming) || [];
   const nextGame = upcomingGames[0];
 
-  const standings = schedule?.standings || [];
-  const ourStanding = standings.find((s) => s.isOurTeam);
-  const ourRank = ourStanding ? standings.indexOf(ourStanding) + 1 : null;
-
   return (
     <main className="min-h-screen bg-[var(--background)]">
       <div className="fixed top-3 right-3 md:top-4 md:right-4 z-30">
@@ -495,21 +432,8 @@ export default function Home() {
           <p className="font-display text-3xl md:text-4xl text-[var(--muted)] leading-[0.9]">
             AT THE PALACE
           </p>
-          <div className="mt-3 flex items-center gap-2 flex-wrap">
+          <div className="mt-3 flex items-center gap-2">
             <span className="font-mono text-xs text-[var(--muted)]">Summer 2026</span>
-            {ourStanding && (
-              <>
-                <span className="font-mono text-xs text-[var(--muted)]">&middot;</span>
-                <span className="font-mono text-xs font-bold text-[var(--foreground)]">
-                  {ourStanding.wins}–{ourStanding.losses}
-                </span>
-                {ourRank && (
-                  <span className="font-mono text-xs text-[var(--muted)]">
-                    ({ourRank}{ordinal(ourRank)} in C.E.O.)
-                  </span>
-                )}
-              </>
-            )}
           </div>
         </div>
       </header>
@@ -545,39 +469,6 @@ export default function Home() {
                   mapPref={mapPref}
                 />
               ))}
-            </div>
-          )}
-
-          {!loading && !error && standings.length > 0 && (
-            <div className="mt-8">
-              <h2 className="font-display text-lg md:text-xl text-[var(--foreground)] mb-3">
-                STANDINGS <span className="text-[var(--muted)]">&middot; C.E.O.</span>
-              </h2>
-              <div className="bg-[var(--card-bg)] rounded-lg border border-[var(--border)] overflow-hidden">
-                <div className="grid grid-cols-[28px_1fr_44px_44px_64px] md:grid-cols-[36px_1fr_56px_56px_72px] px-3 md:px-4 py-2 border-b border-[var(--border)] font-mono text-[10px] md:text-xs uppercase tracking-wider text-[var(--muted)]">
-                  <div className="text-center">#</div>
-                  <div>Team</div>
-                  <div className="text-center">W</div>
-                  <div className="text-center">L</div>
-                  <div className="text-center">Pct</div>
-                </div>
-                {standings.map((s, i) => (
-                  <div
-                    key={s.team}
-                    className={`grid grid-cols-[28px_1fr_44px_44px_64px] md:grid-cols-[36px_1fr_56px_56px_72px] px-3 md:px-4 py-2.5 items-center border-b border-[var(--border)] last:border-b-0 ${
-                      s.isOurTeam ? 'bg-[var(--next-game-bg)]' : ''
-                    }`}
-                  >
-                    <div className="text-center font-mono text-sm text-[var(--muted)]">{i + 1}</div>
-                    <div className={`font-display text-base md:text-lg truncate ${s.isOurTeam ? 'text-[var(--foreground)]' : ''}`}>
-                      {s.team}
-                    </div>
-                    <div className="text-center font-mono text-sm font-bold" style={{ color: 'var(--win)' }}>{s.wins}</div>
-                    <div className="text-center font-mono text-sm font-bold" style={{ color: 'var(--loss)' }}>{s.losses}</div>
-                    <div className="text-center font-mono text-xs text-[var(--muted)]">{s.percent}</div>
-                  </div>
-                ))}
-              </div>
             </div>
           )}
 
