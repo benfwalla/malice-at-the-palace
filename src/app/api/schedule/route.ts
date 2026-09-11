@@ -33,7 +33,6 @@ const scheduleData: ScheduleGame[] = [
   { date: 'Mon 08/24', locationCode: '', time: '', opponent: 'No Game This Week' },
   { date: 'Tue 09/01', locationCode: 'BEC', time: '7:40pm', opponent: 'Lob City' },
   { date: 'Thu 09/10', locationCode: 'JR2', time: '7:00pm', opponent: 'Big College Jacksonville' },
-  { date: 'Tue 09/15', locationCode: 'BEC', time: '8:40pm', opponent: 'Giants' },
   { date: 'Thu 09/17', locationCode: 'NT', time: '8:10pm', opponent: 'Giants' },
   { date: 'Thu 09/24', locationCode: 'NT', locationLabel: 'PLAYOFF: Norman Thomas', time: '8:10pm', opponent: '1 vs 4' },
   { date: 'Thu 09/24', locationCode: 'NT', locationLabel: 'PLAYOFF: Norman Thomas', time: '9:15pm', opponent: '2 vs 3' },
