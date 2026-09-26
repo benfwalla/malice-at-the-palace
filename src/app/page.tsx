@@ -406,13 +406,15 @@ export default function Home() {
 
       <header className="relative overflow-hidden">
         <div className="absolute inset-0">
-          <Image
-            src="/mural.jpg"
-            alt="Malice at the Palace"
-            fill
-            className="object-cover opacity-[0.06]"
-            style={{ objectPosition: '50% 40%' }}
-            priority
+          {/* Faint hero texture as a CSS background (not an <img>) so link-preview
+              crawlers like iMessage/Slack don't scrape it as a giant hero image. */}
+          <div
+            className="absolute inset-0 opacity-[0.06]"
+            style={{
+              backgroundImage: 'url(/mural.jpg)',
+              backgroundSize: 'cover',
+              backgroundPosition: '50% 40%',
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[var(--background)]" />
         </div>
