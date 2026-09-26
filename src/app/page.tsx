@@ -432,8 +432,10 @@ export default function Home() {
           <p className="font-display text-3xl md:text-4xl text-[var(--muted)] leading-[0.9]">
             AT THE PALACE
           </p>
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="font-mono text-xs text-[var(--muted)]">Fall 2026</span>
+            <span className="font-mono text-xs text-[var(--muted)]">·</span>
+            <span className="font-mono text-xs text-[var(--muted)]">Jerseys: Reversible Mesh Tanks</span>
           </div>
         </div>
       </header>
