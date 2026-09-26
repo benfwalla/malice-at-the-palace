@@ -22,21 +22,9 @@ interface ScheduleGame {
 }
 
 const scheduleData: ScheduleGame[] = [
-  { date: 'Tue 06/30', locationCode: 'RS', time: '8:10pm', opponent: 'Bison NYC' },
-  { date: 'Mon 07/06', locationCode: '', time: '', opponent: 'No Game This Week' },
-  { date: 'Wed 07/15', locationCode: 'W50', time: '8:10pm', opponent: 'Giants' },
-  { date: 'Mon 07/20', locationCode: 'W50', time: '7:00pm', opponent: 'Least Most UnBest' },
-  { date: 'Mon 07/27', locationCode: '', time: '', opponent: 'No Game This Week' },
-  { date: 'Thu 08/06', locationCode: 'BEC', time: '8:45pm', opponent: 'Schvitzers' },
-  { date: 'Wed 08/12', locationCode: 'BRN', time: '8:10pm', opponent: 'Winning Aint Easy' },
-  { date: 'Mon 08/17', locationCode: '', time: '', opponent: 'No Game This Week' },
-  { date: 'Mon 08/24', locationCode: '', time: '', opponent: 'No Game This Week' },
-  { date: 'Tue 09/01', locationCode: 'BEC', time: '7:40pm', opponent: 'Lob City' },
-  { date: 'Thu 09/10', locationCode: 'JR2', time: '7:00pm', opponent: 'Big College Jacksonville' },
-  { date: 'Thu 09/17', locationCode: 'NT', time: '8:10pm', opponent: 'Giants' },
-  { date: 'Thu 09/24', locationCode: 'NT', locationLabel: 'PLAYOFF: Norman Thomas', time: '8:10pm', opponent: '1 vs 4' },
-  { date: 'Thu 09/24', locationCode: 'NT', locationLabel: 'PLAYOFF: Norman Thomas', time: '9:15pm', opponent: '2 vs 3' },
-  { date: 'Mon 09/28', locationCode: 'NT', locationLabel: 'PLAYOFF: Norman Thomas', time: '9:15pm', opponent: 'Finals' },
+  { date: 'Thu 10/01', locationCode: 'JR2', time: '8:05pm', opponent: 'Eight-Niners' },
+  { date: 'Mon 10/05', locationCode: 'JR3', time: '9:10pm', opponent: 'Brunson My Doctor' },
+  { date: 'Mon 10/12', locationCode: '', time: '', opponent: 'No Game This Week' },
 ];
 
 // Persistent location lookup, accumulated across seasons. This is NOT cleared when

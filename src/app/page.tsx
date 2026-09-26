@@ -433,7 +433,7 @@ export default function Home() {
             AT THE PALACE
           </p>
           <div className="mt-3 flex items-center gap-2">
-            <span className="font-mono text-xs text-[var(--muted)]">Summer 2026</span>
+            <span className="font-mono text-xs text-[var(--muted)]">Fall 2026</span>
           </div>
         </div>
       </header>
