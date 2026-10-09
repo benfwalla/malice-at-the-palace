@@ -95,6 +95,12 @@ const locationInfo: Record<string, { alias: string; name: string; address: strin
     address: 'E 5th St & Ave B, New York, NY 10009',
     notes: 'Must enter and exit via Red Door on 5th St & Ave B. NO SPECTATORS!',
   },
+  BNK: {
+    alias: 'BNK',
+    name: 'Bank St School For Children',
+    address: '610 W 112th St, New York, NY 10025',
+    notes: 'Bet RSD & Bdwy. Enter on 112th, take elevator up to 9th floor. NO SPECTATORS!',
+  },
 };
 
 // Get current time in NY as a Unix timestamp (ms)
