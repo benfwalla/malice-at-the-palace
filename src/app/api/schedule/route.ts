@@ -25,6 +25,14 @@ const scheduleData: ScheduleGame[] = [
   { date: 'Thu 10/01', locationCode: 'JR2', time: '8:05pm', opponent: 'Eight-Niners' },
   { date: 'Mon 10/05', locationCode: 'JR3', time: '9:10pm', opponent: 'Brunson My Doctor' },
   { date: 'Mon 10/12', locationCode: '', time: '', opponent: 'No Game This Week' },
+  { date: 'Tue 10/20', locationCode: 'BNK', time: '8:25pm', opponent: 'Ballerz' },
+  { date: 'Thu 10/29', locationCode: 'BS', time: '9:15pm', opponent: 'Lebrontourage' },
+  { date: 'Tue 11/03', locationCode: 'BS', time: '7:00pm', opponent: 'Shallow Bags' },
+  { date: 'Mon 11/09', locationCode: '', time: '', opponent: 'No Game This Week' },
+  { date: 'Wed 11/18', locationCode: 'RS', time: '8:10pm', opponent: 'We Cant Make Shots' },
+  { date: 'Mon 11/23', locationCode: '', time: '', opponent: 'No Game This Week' },
+  { date: 'Mon 11/30', locationCode: 'RS', time: '9:15pm', opponent: 'PS41' },
+  { date: 'Mon 12/07', locationCode: 'JR3', time: '8:05pm', opponent: 'Bay Ridge Buckets' },
 ];
 
 // Persistent location lookup, accumulated across seasons. This is NOT cleared when
